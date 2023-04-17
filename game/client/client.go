@@ -15,7 +15,8 @@ const (
 	urlInitGame  = "/api/game"
 	urlGetBoard  = "/api/game/board"
 	urlGetStatus = "/api/game"
-	tokenHeader  = "x-auth-token"
+	urlFire      = "/api/game/fire"
+	tokenHeader  = "X-Auth-Token"
 	errAuthToken = "no auth token"
 )
 
@@ -23,14 +24,14 @@ type Board struct {
 	Board []string
 }
 
-type client struct {
+type Client struct {
 	client     *http.Client
 	serverAddr string
 	token      string
 }
 
-func New(addr string, t time.Duration) *client {
-	return &client{
+func New(addr string, t time.Duration) *Client {
+	return &Client{
 		client: &http.Client{
 			Timeout: t,
 		},
@@ -38,16 +39,16 @@ func New(addr string, t time.Duration) *client {
 	}
 }
 
-func (c *client) PrintToken() {
+func (c *Client) PrintToken() {
 	fmt.Println("Token: ", c.token)
 }
 
-func (c *client) InitGame(coords []string, desc, nick, target_opponent string, wpbot bool) error {
+func (c *Client) InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error {
 	params := map[string]any{
 		"coords":          coords,
 		"desc":            desc,
 		"nick":            nick,
-		"target_opponent": target_opponent,
+		"target_opponent": targetOpponent,
 		"wpbot":           wpbot,
 	}
 
@@ -55,75 +56,115 @@ func (c *client) InitGame(coords []string, desc, nick, target_opponent string, w
 	if err != nil {
 		return err
 	}
-	url, err := url.JoinPath(c.serverAddr, urlInitGame)
+	urlPath, err := url.JoinPath(c.serverAddr, urlInitGame)
 	if err != nil {
 		return err
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
+	resp, err := http.Post(urlPath, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	c.token = string(resp.Header.Get(tokenHeader))
-	if c.token != string(resp.Header.Get(tokenHeader)) {
+	c.token = resp.Header.Get(tokenHeader)
+	if c.token != resp.Header.Get(tokenHeader) {
 		return errors.New(errAuthToken)
 	}
 	return nil
 }
 
-func (c *client) Board() ([]string, error) {
-	url, err := url.JoinPath(c.serverAddr, urlGetBoard)
+func (c *Client) Board() ([]string, error) {
+	urlPath, err := url.JoinPath(c.serverAddr, urlGetBoard)
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+
+	req, err := http.NewRequest(http.MethodGet, urlPath, nil)
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
+
 	req.Header = http.Header{
 		tokenHeader: []string{c.token},
 	}
+
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body := Board{}
-	json.NewDecoder(resp.Body).Decode(&body)
+	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 
-	fmt.Print(body)
-	return []string{}, err
+	return body.Board, err
 }
 
-func (c *client) Status() (*app.StatusResponse, error) {
-	url, err := url.JoinPath(c.serverAddr, urlGetStatus)
+func (c *Client) Status() (*app.StatusResponse, error) {
+	urlPath, err := url.JoinPath(c.serverAddr, urlGetStatus)
 	if err != nil {
-		return &app.StatusResponse{}, err
+		return nil, err
 	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+
+	req, err := http.NewRequest(http.MethodGet, urlPath, http.NoBody)
 	if err != nil {
-		return &app.StatusResponse{}, err
+		return nil, err
 	}
+
 	req.Header = http.Header{
 		tokenHeader: []string{c.token},
 	}
+
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return &app.StatusResponse{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body := app.StatusResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
-		return &app.StatusResponse{}, err
+		return nil, err
 	}
-	fmt.Print(body)
-	return &app.StatusResponse{}, nil
+
+	return &body, nil
+}
+
+func (c *Client) Shoot(coord string) (string, error) {
+	urlPath, err := url.JoinPath(c.serverAddr, urlFire)
+	if err != nil {
+		return "", err
+	}
+	params := map[string]string{
+		"coord": coord,
+	}
+	data, err := json.Marshal(params)
+
+	req, err := http.NewRequest(http.MethodPost, urlPath, bytes.NewBuffer(data))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header = http.Header{
+		tokenHeader: []string{c.token},
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var body map[string]string
+
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		return "", err
+	}
+
+	return body["result"], nil
 }

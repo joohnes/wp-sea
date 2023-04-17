@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"game/game/app"
 	"game/game/client"
 	"time"
@@ -13,7 +14,10 @@ const (
 
 func main() {
 	c := client.New(serverAddr, httpClientTimeout)
-	app := app.New(c)
+	application := app.New(c)
 
-	app.Run()
+	err := application.Run()
+	if err != nil {
+		fmt.Print(err)
+	}
 }
