@@ -45,6 +45,7 @@ func (c *Client) PrintToken() {
 }
 
 func (c *Client) InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error {
+	fmt.Println("Connecting to server...")
 	params := map[string]any{
 		"coords":          coords,
 		"desc":            desc,

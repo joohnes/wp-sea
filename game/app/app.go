@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	gui "github.com/grupawp/warships-lightgui"
 )
 
@@ -35,6 +36,7 @@ func New(c client) *App {
 }
 
 func (a *App) Run() error {
+	fmt.Println("Starting application...")
 
 	err := a.client.InitGame(nil, DESC, NICK, "", true)
 	if err != nil {
