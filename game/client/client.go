@@ -16,6 +16,7 @@ const (
 	urlGetBoard  = "/api/game/board"
 	urlGetStatus = "/api/game"
 	urlFire      = "/api/game/fire"
+	urlResign    = "/api/game/abandon"
 	tokenHeader  = "X-Auth-Token"
 	errAuthToken = "no auth token"
 )
@@ -167,4 +168,27 @@ func (c *Client) Shoot(coord string) (string, error) {
 	}
 
 	return body["result"], nil
+}
+
+func (c *Client) Resign() error {
+	urlPath, err := url.JoinPath(c.serverAddr, urlResign)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, urlPath, http.NoBody)
+	if err != nil {
+		return err
+	}
+
+	req.Header = http.Header{
+		tokenHeader: []string{c.token},
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	fmt.Println("You have successfully resigned the game!")
+	return nil
 }

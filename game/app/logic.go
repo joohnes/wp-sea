@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	board "github.com/grupawp/warships-lightgui"
+	"os"
 	"time"
 )
 
@@ -43,7 +44,7 @@ func (a *App) Shoot(bd *board.Board) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	coord, err := getCoord()
+	coord, err := a.getCoord()
 	if err != nil {
 		return "", err
 	}
@@ -57,9 +58,11 @@ func (a *App) Shoot(bd *board.Board) (string, error) {
 		bd.Set(board.Right, coord, board.Miss)
 	case "hit":
 		bd.Set(board.Right, coord, board.Hit)
+		a.playerHits += 1
 	case "sunk":
 		bd.Set(board.Right, coord, board.Hit)
 		bd.CreateBorder(board.Right, coord)
+		a.playerHits += 1
 	}
 
 	return result, nil
@@ -115,8 +118,22 @@ func (a *App) OpponentShots(bd *board.Board) error {
 	a.oppShots = currOppShots
 
 	for _, v := range newOppShots {
-		bd.HitOrMiss(board.Left, v)
+		result := bd.HitOrMiss(board.Left, v)
+		if result == 1 {
+			a.opponentHits += 1
+		}
 	}
 	show(bd, status)
 	return nil
+}
+
+func (a *App) CheckIfWon() {
+	if a.playerHits >= 20 {
+		fmt.Println("You won!")
+		os.Exit(1)
+	}
+	if a.opponentHits >= 20 {
+		fmt.Println("You lost again...")
+		os.Exit(1)
+	}
 }

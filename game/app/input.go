@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func getCoord() (string, error) {
+func (a *App) getCoord() (string, error) {
 	var coord string
 	fmt.Print("Enter coordinates: ")
 	scanner := bufio.NewScanner(os.Stdin)
@@ -21,6 +21,10 @@ func getCoord() (string, error) {
 		return "", err
 	}
 	if coord == "quit" {
+		err := a.client.Resign()
+		if err != nil {
+			return "", err
+		}
 		os.Exit(1)
 	}
 

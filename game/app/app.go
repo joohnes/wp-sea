@@ -15,17 +15,22 @@ type client interface {
 	Board() ([]string, error)
 	Status() (*StatusResponse, error)
 	Shoot(coord string) (string, error)
+	Resign() error
 }
 
 type App struct {
-	client   client
-	oppShots []string
+	client       client
+	oppShots     []string
+	playerHits   int
+	opponentHits int
 }
 
 func New(c client) *App {
 	return &App{
 		c,
 		[]string{},
+		0,
+		0,
 	}
 }
 
@@ -51,8 +56,10 @@ func (a *App) Run() error {
 	board.Import(boardCoords)
 	show(board, status)
 
+	// MAIN GAME LOOP
 	for {
-		err := a.Play(board, status)
+		a.CheckIfWon()
+		err = a.Play(board, status)
 		if err != nil {
 			return err
 		}
@@ -61,5 +68,4 @@ func (a *App) Run() error {
 			return err
 		}
 	}
-	return nil
 }
