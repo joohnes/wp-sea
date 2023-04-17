@@ -4,7 +4,7 @@ type client interface {
 	InitGame(coords []string, desc, nick, target_opponent string, wpbot bool) error
 	PrintToken()
 	Board() ([]string, error)
-	// Status() error
+	Status() (*StatusResponse, error)
 }
 
 type app struct {

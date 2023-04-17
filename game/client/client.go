@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"game/game/app"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -100,28 +102,28 @@ func (c *client) Board() ([]string, error) {
 	return []string{}, err
 }
 
-// func (c *client) Status() (*StatusResponse, error) {
-// 	url, err := url.JoinPath(c.serverAddr, urlGetStatus)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	req, err := http.NewRequest(http.MethodGet, url, nil)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	req.Header = http.Header{
-// 		tokenHeader: []string{c.token},
-// 	}
-// 	resp, err := c.client.Do(req)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer resp.Body.Close()
+func (c *client) Status() (*app.StatusResponse, error) {
+	url, err := url.JoinPath(c.serverAddr, urlGetStatus)
+	if err != nil {
+		return &app.StatusResponse{}, err
+	}
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return &app.StatusResponse{}, err
+	}
+	req.Header = http.Header{
+		tokenHeader: []string{c.token},
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return &app.StatusResponse{}, err
+	}
+	defer resp.Body.Close()
 
-// 	body, err := ioutil.ReadAll(resp.Body)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	fmt.Print(string(body))
-// 	return nil
-// }
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return &app.StatusResponse{}, err
+	}
+	fmt.Print(string(body))
+	return &app.StatusResponse{}, nil
+}
