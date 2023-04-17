@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"game/game/app"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -120,10 +119,11 @@ func (c *client) Status() (*app.StatusResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body := app.StatusResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
 		return &app.StatusResponse{}, err
 	}
-	fmt.Print(string(body))
+	fmt.Print(body)
 	return &app.StatusResponse{}, nil
 }

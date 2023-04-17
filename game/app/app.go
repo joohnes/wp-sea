@@ -1,5 +1,7 @@
 package app
 
+import "fmt"
+
 type client interface {
 	InitGame(coords []string, desc, nick, target_opponent string, wpbot bool) error
 	PrintToken()
@@ -21,4 +23,8 @@ func (a *app) Run() {
 	a.c.InitGame(nil, "", "", "", true)
 	a.c.PrintToken()
 	a.c.Board()
+	_, err := a.c.Status()
+	if err != nil {
+		fmt.Print(err)
+	}
 }

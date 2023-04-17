@@ -1,11 +1,11 @@
 package app
 
 type StatusResponse struct {
-	game_status      string
-	last_game_status string
-	nick             string
-	opp_desc         string
-	opponent         string
-	should_fire      bool
-	timer            int
+	Game_status      string
+	Last_game_status string
+	Nick             string
+	Opp_desc         string
+	Opponent         string
+	Should_fire      bool
+	Timer            int
 }
