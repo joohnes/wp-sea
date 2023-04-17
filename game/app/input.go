@@ -20,6 +20,9 @@ func getCoord() (string, error) {
 	if err := scanner.Err(); err != nil {
 		return "", err
 	}
+	if coord == "quit" {
+		os.Exit(1)
+	}
 
 	var coordList []string
 	for _, i := range coord {
@@ -39,9 +42,10 @@ func getCoord() (string, error) {
 
 	if number, err := strconv.Atoi(strings.Join(coordList[1:], "")); number > 10 || number < 1 {
 		if err != nil {
-			return "", err
+			fmt.Println(err)
+			os.Exit(1)
 		}
-		return "", errors.New("please enter a valid coordinate (use number from 1 to 10")
+		return "", errors.New("please enter a valid coordinate (use number from 1 to 10)")
 	}
 	return strings.Join(coordList, ""), nil
 }

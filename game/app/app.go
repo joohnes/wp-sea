@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-	"github.com/fatih/color"
 	gui "github.com/grupawp/warships-lightgui"
 )
 
@@ -20,12 +18,14 @@ type client interface {
 }
 
 type App struct {
-	client client
+	client   client
+	oppShots []string
 }
 
 func New(c client) *App {
 	return &App{
 		c,
+		[]string{},
 	}
 }
 
@@ -52,25 +52,14 @@ func (a *App) Run() error {
 	show(board, status)
 
 	for {
-		result, err := a.Shoot(board)
+		err := a.Play(board, status)
 		if err != nil {
 			return err
 		}
-		show(board, status)
-		if result == "miss" {
-			break
+		err = a.OpponentShots(board)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
-}
-
-func show(board *gui.Board, status *StatusResponse) {
-	red := color.New(color.FgBlack, color.BgRed).SprintFunc()
-	green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
-
-	board.Display()
-	fmt.Println("Your name: ", green(NICK))
-	fmt.Println("Your description: ", green(DESC))
-	fmt.Println("\nYour opponent's name: ", red(status.Opponent))
-	fmt.Println("Your opponent's description: ", red(status.Opp_desc))
 }
