@@ -53,10 +53,6 @@ func (a *App) Run() error {
 	if err != nil {
 		return err
 	}
-	a.opp_nick, a.opp_desc, err = a.client.GetOppDesc()
-	if err != nil {
-		return err
-	}
 
 	board := gui.New(
 		gui.NewConfig(),
