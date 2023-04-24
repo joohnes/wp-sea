@@ -273,6 +273,7 @@ func (c *Client) PlayerList() ([][]string, error) {
 	}
 	defer resp.Body.Close()
 	var body [][]string
+	fmt.Println()
 
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {

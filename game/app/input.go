@@ -53,3 +53,19 @@ func (a *App) getCoord() (string, error) {
 	}
 	return strings.Join(coordList, ""), nil
 }
+
+func (a *App) getAnswer() (string, error) {
+	fmt.Println("1. Play with WPBot")
+	fmt.Println("2. Play with another player")
+	fmt.Println("Choose an option (number): ")
+	var answer string
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		answer = scanner.Text()
+		break
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+	return string(answer[0]), nil
+}
