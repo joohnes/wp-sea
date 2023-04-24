@@ -54,6 +54,11 @@ func (a *App) Run() error {
 		return err
 	}
 
+	a.opp_nick, a.opp_desc, err = a.client.GetOppDesc()
+	if err != nil {
+		return err
+	}
+
 	board := gui.New(
 		gui.NewConfig(),
 	)
@@ -62,7 +67,9 @@ func (a *App) Run() error {
 
 	// MAIN GAME LOOP
 	for {
-		a.CheckIfWon()
+		if a.CheckIfWon() {
+			return nil
+		}
 		err = a.Play(board, status)
 		if err != nil {
 			return err

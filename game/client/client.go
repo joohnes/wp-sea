@@ -252,3 +252,31 @@ func (c *Client) Refresh() error {
 	defer resp.Body.Close()
 	return nil
 }
+
+func (c *Client) PlayerList() ([][]string, error) {
+	urlPath, err := url.JoinPath(c.serverAddr, urlList)
+	if err != nil {
+		return [][]string{}, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, urlPath, http.NoBody)
+	if err != nil {
+		return [][]string{}, err
+	}
+
+	req.Header = http.Header{
+		tokenHeader: []string{c.token},
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return [][]string{}, err
+	}
+	defer resp.Body.Close()
+	var body [][]string
+
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		return [][]string{}, err
+	}
+	return body, nil
+}

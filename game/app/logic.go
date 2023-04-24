@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/fatih/color"
@@ -123,7 +122,7 @@ func (a *App) OpponentShots(bd *board.Board) error {
 	return nil
 }
 
-func (a *App) CheckIfWon() {
+func (a *App) CheckIfWon() bool {
 	status, err := a.client.Status()
 	if err != nil {
 		fmt.Println("Could not get status")
@@ -132,10 +131,11 @@ func (a *App) CheckIfWon() {
 	case "win":
 		green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
 		fmt.Println(green("You have won the game!"))
-		os.Exit(1)
+		return true
 	case "lose":
 		red := color.New(color.FgBlack, color.BgRed).SprintFunc()
 		fmt.Println(red("You have lost the game!"))
-		os.Exit(1)
+		return true
 	}
+	return false
 }
