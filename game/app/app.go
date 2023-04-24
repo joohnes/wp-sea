@@ -19,6 +19,8 @@ type client interface {
 	Shoot(coord string) (string, error)
 	Resign() error
 	GetOppDesc() (string, string, error)
+	Refresh() error
+	PlayerList() ([][]string, error)
 }
 
 type App struct {
