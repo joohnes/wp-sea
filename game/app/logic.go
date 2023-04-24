@@ -94,8 +94,8 @@ func (a *App) show(board *board.Board, status *StatusResponse) {
 	board.Display()
 	fmt.Println("Your name: ", green(NICK))
 	fmt.Println("Your description: ", green(DESC))
-	fmt.Println("\nYour opponent's name: ", red(a.opp_nick))
-	fmt.Println("Your opponent's description: ", red(a.opp_desc))
+	fmt.Println("\nYour opponent's name: ", red(a.oppNick))
+	fmt.Println("Your opponent's description: ", red(a.oppDesc))
 }
 
 func (a *App) OpponentShots(bd *board.Board) error {

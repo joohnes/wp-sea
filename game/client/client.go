@@ -25,6 +25,14 @@ const (
 	errAuthToken = "no auth token"
 )
 
+type Stats struct {
+	Games  int    `json:"games"`
+	Nick   string `json:"nick"`
+	Points int    `json:"points"`
+	Rank   int    `json:"rank"`
+	Wins   int    `json:"wins"`
+}
+
 type Board struct {
 	Board []string
 }
@@ -273,11 +281,82 @@ func (c *Client) PlayerList() ([][]string, error) {
 	}
 	defer resp.Body.Close()
 	var body [][]string
-	fmt.Println()
 
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
 		return [][]string{}, err
 	}
 	return body, nil
+}
+
+func (c *Client) Stats() (map[string][]int, error) {
+	urlPath, err := url.JoinPath(c.serverAddr, urlStats)
+	if err != nil {
+		return map[string][]int{}, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, urlPath, http.NoBody)
+	if err != nil {
+		return map[string][]int{}, err
+	}
+
+	req.Header = http.Header{
+		tokenHeader: []string{c.token},
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return map[string][]int{}, err
+	}
+	defer resp.Body.Close()
+
+	var body map[string][]Stats
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		return map[string][]int{}, err
+	}
+	stats := make(map[string][]int)
+	for _, x := range body["stats"] {
+		stats[x.Nick] = []int{x.Games, x.Points, x.Rank, x.Wins}
+	}
+
+	return stats, nil
+}
+
+func (c *Client) StatsPlayer(nick string) ([]int, error) {
+	urlPath, err := url.JoinPath(c.serverAddr, urlStats)
+	if err != nil {
+		return []int{}, err
+	}
+	if nick == "" {
+		fmt.Println("Please enter a nick!")
+		return []int{}, err
+	}
+	urlPath, err = url.JoinPath(urlPath, nick)
+	req, err := http.NewRequest(http.MethodGet, urlPath, http.NoBody)
+	if err != nil {
+		return []int{}, err
+	}
+
+	req.Header = http.Header{
+		tokenHeader: []string{c.token},
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return []int{}, err
+	}
+	defer resp.Body.Close()
+
+	var body map[string]Stats
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		return []int{}, err
+	}
+	stats := []int{
+		body["stats"].Games,
+		body["stats"].Points,
+		body["stats"].Rank,
+		body["stats"].Wins,
+	}
+
+	return stats, nil
 }
