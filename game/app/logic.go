@@ -2,10 +2,11 @@ package app
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	board "github.com/grupawp/warships-lightgui"
 	"os"
 	"time"
+
+	"github.com/fatih/color"
+	board "github.com/grupawp/warships-lightgui"
 )
 
 const (
@@ -31,7 +32,7 @@ func (a *App) WaitForTurn() error {
 		if err != nil {
 			return err
 		}
-		if status.Should_fire == true {
+		if status.Should_fire {
 			break
 		}
 		time.Sleep(waitDuration * time.Second)
@@ -58,11 +59,9 @@ func (a *App) Shoot(bd *board.Board) (string, error) {
 		bd.Set(board.Right, coord, board.Miss)
 	case "hit":
 		bd.Set(board.Right, coord, board.Hit)
-		a.playerHits += 1
 	case "sunk":
 		bd.Set(board.Right, coord, board.Hit)
 		bd.CreateBorder(board.Right, coord)
-		a.playerHits += 1
 	}
 
 	return result, nil
@@ -75,7 +74,7 @@ func (a *App) Play(board *board.Board, status *StatusResponse) error {
 			fmt.Println(err)
 			continue
 		}
-		show(board, status)
+		a.show(board, status)
 		if result == "miss" {
 			break
 		}
@@ -89,15 +88,15 @@ func (a *App) Play(board *board.Board, status *StatusResponse) error {
 	return nil
 }
 
-func show(board *board.Board, status *StatusResponse) {
+func (a *App) show(board *board.Board, status *StatusResponse) {
 	red := color.New(color.FgBlack, color.BgRed).SprintFunc()
 	green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
 
 	board.Display()
 	fmt.Println("Your name: ", green(NICK))
 	fmt.Println("Your description: ", green(DESC))
-	fmt.Println("\nYour opponent's name: ", red(status.Opponent))
-	fmt.Println("Your opponent's description: ", red(status.Opp_desc))
+	fmt.Println("\nYour opponent's name: ", red(a.opp_nick))
+	fmt.Println("Your opponent's description: ", red(a.opp_desc))
 }
 
 func (a *App) OpponentShots(bd *board.Board) error {
@@ -118,22 +117,25 @@ func (a *App) OpponentShots(bd *board.Board) error {
 	a.oppShots = currOppShots
 
 	for _, v := range newOppShots {
-		result := bd.HitOrMiss(board.Left, v)
-		if result == 1 {
-			a.opponentHits += 1
-		}
+		bd.HitOrMiss(board.Left, v)
 	}
-	show(bd, status)
+	a.show(bd, status)
 	return nil
 }
 
 func (a *App) CheckIfWon() {
-	if a.playerHits >= 20 {
-		fmt.Println("You won!")
-		os.Exit(1)
+	status, err := a.client.Status()
+	if err != nil {
+		fmt.Println("Could not get status")
 	}
-	if a.opponentHits >= 20 {
-		fmt.Println("You lost again...")
+	switch status.Last_game_status {
+	case "win":
+		green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
+		fmt.Println(green("You have won the game!"))
+		os.Exit(1)
+	case "lose":
+		red := color.New(color.FgBlack, color.BgRed).SprintFunc()
+		fmt.Println(red("You have lost the game!"))
 		os.Exit(1)
 	}
 }

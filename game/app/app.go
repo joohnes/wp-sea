@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+
 	gui "github.com/grupawp/warships-lightgui"
 )
 
@@ -17,21 +18,22 @@ type client interface {
 	Status() (*StatusResponse, error)
 	Shoot(coord string) (string, error)
 	Resign() error
+	GetOppDesc() (string, string, error)
 }
 
 type App struct {
-	client       client
-	oppShots     []string
-	playerHits   int
-	opponentHits int
+	client   client
+	oppShots []string
+	opp_nick string
+	opp_desc string
 }
 
 func New(c client) *App {
 	return &App{
 		c,
 		[]string{},
-		0,
-		0,
+		"",
+		"",
 	}
 }
 
@@ -51,12 +53,16 @@ func (a *App) Run() error {
 	if err != nil {
 		return err
 	}
+	a.opp_nick, a.opp_desc, err = a.client.GetOppDesc()
+	if err != nil {
+		return err
+	}
 
 	board := gui.New(
 		gui.NewConfig(),
 	)
 	board.Import(boardCoords)
-	show(board, status)
+	a.show(board, status)
 
 	// MAIN GAME LOOP
 	for {

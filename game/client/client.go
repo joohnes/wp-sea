@@ -17,6 +17,7 @@ const (
 	urlGetStatus = "/api/game"
 	urlFire      = "/api/game/fire"
 	urlResign    = "/api/game/abandon"
+	urlOppDesc   = "api/game/desc"
 	tokenHeader  = "X-Auth-Token"
 	errAuthToken = "no auth token"
 )
@@ -145,6 +146,9 @@ func (c *Client) Shoot(coord string) (string, error) {
 		"coord": coord,
 	}
 	data, err := json.Marshal(params)
+	if err != nil {
+		return "", err
+	}
 
 	req, err := http.NewRequest(http.MethodPost, urlPath, bytes.NewBuffer(data))
 	if err != nil {
@@ -192,4 +196,34 @@ func (c *Client) Resign() error {
 	defer resp.Body.Close()
 	fmt.Println("You have successfully resigned the game!")
 	return nil
+}
+
+func (c *Client) GetOppDesc() (string, string, error) {
+	urlPath, err := url.JoinPath(c.serverAddr, urlOppDesc)
+	if err != nil {
+		return "", "", err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, urlPath, http.NoBody)
+	if err != nil {
+		return "", "", err
+	}
+
+	req.Header = http.Header{
+		tokenHeader: []string{c.token},
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
+	var body map[string]interface{}
+
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		return "", "", err
+	}
+	opp_nick := fmt.Sprintf("%v", body["opponent"])
+	opp_desc := fmt.Sprintf("%v", body["opp_desc"])
+	return opp_nick, opp_desc, nil
 }
