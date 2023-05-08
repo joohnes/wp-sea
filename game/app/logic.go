@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/fatih/color"
@@ -169,6 +170,23 @@ func (a *App) ChooseOption() error {
 				return nil
 			}
 		}
+		for i, x := range playerlist {
+			fmt.Println(i, x[1])
+		}
+		fmt.Println("Choose a player number: ")
+		answer, err = a.getAnswer()
+		if err != nil {
+			return err
+		}
+		i, err := strconv.Atoi(answer)
+		if err != nil {
+			return err
+		}
+		err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i][1], false)
+		if err != nil {
+			return err
+		}
+
 	} else {
 		fmt.Println("Please enter a number from the list!")
 	}
