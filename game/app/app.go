@@ -1,6 +1,8 @@
 package app
 
-import "time"
+import (
+	"time"
+)
 
 type client interface {
 	InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error
@@ -11,7 +13,7 @@ type client interface {
 	Resign() error
 	GetOppDesc() (string, string, error)
 	Refresh() error
-	PlayerList() ([][]string, error)
+	PlayerList() ([]map[string]string, error)
 	Stats() (map[string][]int, error)
 	StatsPlayer(nick string) ([]int, error)
 }
@@ -50,7 +52,10 @@ Start:
 	if err != nil {
 		return err
 	}
-	a.ChooseOption()
+	err = a.ChooseOption()
+	if err != nil {
+		return err
+	}
 
 	boardCoords, err := a.client.Board()
 	if err != nil {

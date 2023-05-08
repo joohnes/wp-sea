@@ -22,6 +22,7 @@ func (a *App) WaitForStart() (status *StatusResponse, err error) {
 		if status.Game_status == "game_in_progress" {
 			return status, nil
 		}
+		fmt.Println(status.Game_status)
 		time.Sleep(waitDuration * time.Second)
 	}
 }
@@ -170,8 +171,9 @@ func (a *App) ChooseOption() error {
 				return nil
 			}
 		}
+		fmt.Println("Waiting players: ")
 		for i, x := range playerlist {
-			fmt.Println(i, x[1])
+			fmt.Println(i, x["nick"])
 		}
 		fmt.Println("Choose a player number: ")
 		answer, err = a.getAnswer()
@@ -182,7 +184,8 @@ func (a *App) ChooseOption() error {
 		if err != nil {
 			return err
 		}
-		err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i][1], false)
+
+		err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
 		if err != nil {
 			return err
 		}

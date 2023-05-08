@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (a *App) getCoord() (string, error) {
+func (a *App) getCoord() (string, error) { // dodac obsluge błędu
 	var coord string
 	fmt.Print("Enter coordinates: ")
 	scanner := bufio.NewScanner(os.Stdin)
