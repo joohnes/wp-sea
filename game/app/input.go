@@ -25,7 +25,7 @@ func (a *App) getCoord() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		os.Exit(1)
+		os.Exit(1) //TODO: Zmienić na ładniejsze
 	}
 
 	var coordList []string
@@ -55,9 +55,6 @@ func (a *App) getCoord() (string, error) {
 }
 
 func (a *App) getAnswer() (string, error) {
-	fmt.Println("1. Play with WPBot")
-	fmt.Println("2. Play with another player")
-	fmt.Println("Choose an option (number): ")
 	var answer string
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -67,5 +64,34 @@ func (a *App) getAnswer() (string, error) {
 	if err := scanner.Err(); err != nil {
 		return "", err
 	}
-	return string(answer[0]), nil
+	return strings.ToLower(string(answer[0])), nil
+}
+
+func (a *App) getName() error {
+	var answer string
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Println("Enter your name: ")
+	for scanner.Scan() {
+		answer = scanner.Text()
+		break
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+	a.nick = answer
+	return nil
+}
+func (a *App) getDesc() error {
+	var answer string
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Println("Enter your description: ")
+	for scanner.Scan() {
+		answer = scanner.Text()
+		break
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+	a.desc = answer
+	return nil
 }

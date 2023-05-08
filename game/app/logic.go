@@ -75,7 +75,11 @@ func (a *App) Play(board *board.Board, status *StatusResponse) error {
 		}
 		a.show(board, status)
 		if result == "miss" {
+			a.shotsCount += 1
 			break
+		} else {
+			a.shotsCount += 1
+			a.shotsHit += 1
 		}
 	}
 	fmt.Print("Waiting for bot")
@@ -85,17 +89,6 @@ func (a *App) Play(board *board.Board, status *StatusResponse) error {
 	}
 	fmt.Print("\n")
 	return nil
-}
-
-func (a *App) show(board *board.Board, status *StatusResponse) {
-	red := color.New(color.FgBlack, color.BgRed).SprintFunc()
-	green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
-
-	board.Display()
-	fmt.Println("Your name: ", green(NICK))
-	fmt.Println("Your description: ", green(DESC))
-	fmt.Println("\nYour opponent's name: ", red(a.oppNick))
-	fmt.Println("Your opponent's description: ", red(a.oppDesc))
 }
 
 func (a *App) OpponentShots(bd *board.Board) error {
@@ -138,4 +131,46 @@ func (a *App) CheckIfWon() bool {
 		return true
 	}
 	return false
+}
+
+func (a *App) ChooseOption() error {
+	fmt.Println("1. Play with WPBot")
+	fmt.Println("2. Play with another player")
+	fmt.Println("Choose an option (number): ")
+	answer, err := a.getAnswer()
+	if err != nil {
+		return err
+	}
+	if answer == "1" {
+		err := a.client.InitGame(nil, a.desc, a.nick, "", true)
+		if err != nil {
+			return err
+		}
+	} else if answer == "2" {
+		playerlist, err := a.client.PlayerList()
+		if err != nil {
+			return err
+		}
+		if len(playerlist) == 0 {
+			fmt.Println("No players waiting at the moment")
+			fmt.Println("Do you want to wait for another player? y/n")
+			answer, err = a.getAnswer()
+			if err != nil {
+				return err
+			}
+			switch answer {
+			case "y":
+				err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+				if err != nil {
+					return err
+				}
+				return nil
+			case "n":
+				return nil
+			}
+		}
+	} else {
+		fmt.Println("Please enter a number from the list!")
+	}
+	return nil
 }
