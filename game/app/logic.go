@@ -143,12 +143,13 @@ func (a *App) ChooseOption() error {
 	if err != nil {
 		return err
 	}
-	if answer == "1" {
+	switch answer {
+	case "1":
 		err := a.client.InitGame(nil, a.desc, a.nick, "", true)
 		if err != nil {
 			return err
 		}
-	} else if answer == "2" {
+	case "2":
 		playerlist, err := a.client.PlayerList()
 		if err != nil {
 			return err
@@ -184,13 +185,13 @@ func (a *App) ChooseOption() error {
 		if err != nil {
 			return err
 		}
-
+		fmt.Printf("'%s'", playerlist[i]["nick"])
 		err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
 		if err != nil {
 			return err
 		}
 
-	} else {
+	default:
 		fmt.Println("Please enter a number from the list!")
 	}
 	return nil

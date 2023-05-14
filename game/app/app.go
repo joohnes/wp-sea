@@ -1,8 +1,6 @@
 package app
 
-import (
-	"time"
-)
+import "time"
 
 type client interface {
 	InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error
