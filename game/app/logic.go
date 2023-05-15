@@ -183,7 +183,42 @@ func (a *App) ChooseOption() error {
 		if err != nil {
 			return err
 		}
-		if len(playerlist) == 0 {
+		if len(playerlist) != 0 {
+
+			fmt.Println("Waiting players: ")
+			for i, x := range playerlist {
+				fmt.Println(i, x["nick"])
+			}
+			fmt.Println("Do you want to wait for another player? y/n")
+			answer, err = a.getAnswer()
+			if err != nil {
+				return err
+			}
+			if answer == "y" {
+				err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
+			fmt.Println("Choose a player number: ")
+			answer, err = a.getAnswer()
+			if err != nil {
+				return err
+			}
+			i, err := strconv.Atoi(answer)
+			if err != nil {
+				return err
+			}
+			a.client.Refresh()
+			time.Sleep(time.Second * 1)
+			fmt.Printf("'%s'", playerlist[i]["nick"])
+			err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
+			if err != nil {
+				return err
+			}
+		} else {
 			fmt.Println("No players waiting at the moment")
 			fmt.Println("Do you want to wait for another player? y/n")
 			answer, err = a.getAnswer()
@@ -199,31 +234,10 @@ func (a *App) ChooseOption() error {
 				return nil
 			case "n":
 				return nil
+			default:
+				fmt.Println("Please enter a number from the list!")
 			}
 		}
-		fmt.Println("Waiting players: ")
-		for i, x := range playerlist {
-			fmt.Println(i, x["nick"])
-		}
-		fmt.Println("Choose a player number: ")
-		answer, err = a.getAnswer()
-		if err != nil {
-			return err
-		}
-		i, err := strconv.Atoi(answer)
-		if err != nil {
-			return err
-		}
-		a.client.Refresh()
-		time.Sleep(time.Second * 1)
-		fmt.Printf("'%s'", playerlist[i]["nick"])
-		err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
-		if err != nil {
-			return err
-		}
-
-	default:
-		fmt.Println("Please enter a number from the list!")
 	}
 	return nil
 }
