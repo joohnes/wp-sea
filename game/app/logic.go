@@ -1,12 +1,13 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
-	board "github.com/grupawp/warships-lightgui"
 )
 
 const (
@@ -41,11 +42,30 @@ func (a *App) WaitForTurn() error {
 	return nil
 }
 
+func (a *App) CheckIfWon() bool {
+	status, err := a.client.Status()
+	if err != nil {
+		fmt.Println("Could not get status")
+	}
+	switch status.Last_game_status {
+	case "win":
+		green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
+		fmt.Println(green("You have won the game!"))
+		return true
+	case "lose":
+		red := color.New(color.FgBlack, color.BgRed).SprintFunc()
+		fmt.Println(red("You have lost the game!"))
+		return true
+	}
+	return false
+}
+
 func (a *App) Shoot() error {
 	err := a.WaitForTurn()
 	if err != nil {
 		return err
 	}
+Again:
 	coord, err := a.getCoord()
 	if err != nil {
 		return err
@@ -66,26 +86,28 @@ func (a *App) Shoot() error {
 		a.enemy_states[coord[0]-97][coord[1]-49] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
+		goto Again
 	case "sunk":
 		// bd.Set(board.Right, coord, board.Hit)
 		// bd.CreateBorder(board.Right, coord)
 		a.enemy_states[coord[0]-97][coord[1]-49] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
+		goto Again
 	}
 
 	return nil
 }
 
-func (a *App) Play(status *StatusResponse) error {
-	for {
-		err := a.Shoot()
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		// a.show(board, status)
+////////////////////////////////////////////
+// TUTAJ SIE KOŃCZĄ DOBRE FUNKCJE
+////////////////////////////////////////////
 
+func (a *App) Play(status *StatusResponse) error {
+
+	err := a.Shoot()
+	if err != nil {
+		return err
 	}
 	fmt.Print("Waiting for bot")
 	for i := 0; i < 2; i++ {
@@ -96,7 +118,7 @@ func (a *App) Play(status *StatusResponse) error {
 	return nil
 }
 
-func (a *App) OpponentShots(bd *board.Board) error {
+func (a *App) OpponentShots() error {
 	var status *StatusResponse
 	var err error
 	for {
@@ -109,33 +131,35 @@ func (a *App) OpponentShots(bd *board.Board) error {
 		}
 		time.Sleep(waitDuration * time.Second)
 	}
-	currOppShots := status.Opp_shots
-	newOppShots := currOppShots[len(a.oppShots):]
-	a.oppShots = currOppShots
+	a.oppShots = status.Opp_shots
 
-	for _, v := range newOppShots {
-		bd.HitOrMiss(board.Left, v)
+	for _, v := range a.oppShots {
+		err := a.HitOrMiss(strings.ToLower(v))
+		if err != nil {
+			return err
+		}
 	}
-	a.show(bd, status)
+
 	return nil
 }
 
-func (a *App) CheckIfWon() bool {
-	status, err := a.client.Status()
-	if err != nil {
-		fmt.Println("Could not get status")
+func (a *App) HitOrMiss(coord string) error {
+	x := coord[0] - 97
+	if x > 9 || x < 0 {
+		return errors.New("Wrong coord!")
 	}
-	switch status.Last_game_status {
-	case "win":
-		green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
-		fmt.Println(green("You have won the game!"))
-		return true
-	case "lose":
-		red := color.New(color.FgBlack, color.BgRed).SprintFunc()
-		fmt.Println(red("You have lost the game!"))
-		return true
+	y := coord[1] - 49
+	if y > 9 || y < 0 {
+		return errors.New("Wrong coord!")
 	}
-	return false
+	state := a.my_states[coord[0]-97][coord[1]-49]
+	switch state {
+	case "Ship":
+		a.enemy_states[coord[0]-97][coord[1]-49] = "Hit"
+	default:
+		a.enemy_states[coord[0]-97][coord[1]-49] = "Miss"
+	}
+	return nil
 }
 
 func (a *App) ChooseOption() error {

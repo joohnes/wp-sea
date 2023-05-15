@@ -1,31 +1,45 @@
 package app
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/fatih/color"
-	board "github.com/grupawp/warships-lightgui"
+	gui "github.com/grupawp/warships-gui/v2"
 )
 
-func (a *App) show(board *board.Board, status *StatusResponse) {
-	red := color.New(color.FgBlack, color.BgRed).SprintFunc()
-	green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
+func (a *App) ShowBoard() {
+	ui := gui.NewGUI(true)
+	txt := gui.NewText(1, 1, "Press Ctrl+C to exit", nil)
+	ui.Draw(txt)
+	my_board := gui.NewBoard(1, 4, nil)
+	ui.Draw(my_board)
+	enemy_board := gui.NewBoard(50, 4, nil)
+	ui.Draw(enemy_board)
 
-	var score float64
-	if a.shotsCount != 0 {
-		score = float64(a.shotsHit) / float64(a.shotsCount)
+	//TEXTS
+	timer := gui.NewText(1, 2, "Timer: ", nil)
+	ui.Draw(timer)
+	playerNick := gui.NewText(1, 26, fmt.Sprintf("Player: %s", a.nick), nil)
+	playerDesc := gui.NewText(1, 27, fmt.Sprintf("Player's desc: %s", a.desc), nil)
+	oppNick := gui.NewText(1, 28, fmt.Sprintf("Opp: %s", a.oppNick), nil)
+	oppDesc := gui.NewText(1, 29, fmt.Sprintf("Opp's desc: %s", a.oppDesc), nil)
+	ui.Draw(playerNick)
+	ui.Draw(playerDesc)
+	ui.Draw(oppNick)
+	ui.Draw(oppDesc)
+
+	for i := range a.my_states {
+		a.my_states[i] = [10]gui.State{}
+		a.enemy_states[i] = [10]gui.State{}
 	}
-
-	board.Display()
-	fmt.Println("Your name: ", green(a.nick))
-	fmt.Println("Your description: ", green(a.desc))
-	fmt.Println("\nYour opponent's name: ", red(a.oppNick))
-	fmt.Println("Your opponent's description: ", red(a.oppDesc))
-	fmt.Println("Hits: ", a.shotsHit, "Shoots: ", a.shotsCount, "Efficiency: ", score)
-}
-
-func (a *App) Create() *board.Board {
-	return board.New(
-		board.NewConfig(),
-	)
+	my_board.SetStates(a.my_states)
+	enemy_board.SetStates(a.enemy_states)
+	go func() {
+		for {
+			char := enemy_board.Listen(context.TODO())
+			txt.SetText(fmt.Sprintf("Coordinate: %s", char))
+			ui.Log("Coordinate: %s", char) // logs are displayed after the game exits
+		}
+	}()
+	ui.Start(nil)
 }

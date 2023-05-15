@@ -1,8 +1,6 @@
 package app
 
 import (
-	"context"
-	"fmt"
 	"time"
 
 	gui "github.com/grupawp/warships-gui/v2"
@@ -51,7 +49,7 @@ func New(c client) *App {
 }
 
 func (a *App) Run() error {
-Start:
+	// Start:
 	err := a.getName()
 	if err != nil {
 		return err
@@ -64,29 +62,6 @@ Start:
 	if err != nil {
 		return err
 	}
-
-	ui := gui.NewGUI(true)
-	txt := gui.NewText(1, 1, "Press Ctrl+C to exit", nil)
-	ui.Draw(txt)
-	my_board := gui.NewBoard(1, 4, nil)
-	ui.Draw(my_board)
-	enemy_board := gui.NewBoard(50, 4, nil)
-	ui.Draw(enemy_board)
-
-	for i := range a.my_states {
-		a.my_states[i] = [10]gui.State{}
-		a.enemy_states[i] = [10]gui.State{}
-	}
-	my_board.SetStates(a.my_states)
-	enemy_board.SetStates(a.enemy_states)
-	go func() {
-		for {
-			char := enemy_board.Listen(context.TODO())
-			txt.SetText(fmt.Sprintf("Coordinate: %s", char))
-			ui.Log("Coordinate: %s", char) // logs are displayed after the game exits
-		}
-	}()
-
 	status, err := a.WaitForStart()
 	if err != nil {
 		return err
@@ -96,22 +71,25 @@ Start:
 	if err != nil {
 		return err
 	}
-	ui.Start(nil)
 
 	// MAIN GAME LOOP
 
-	for {
-		if a.CheckIfWon() {
-			time.Sleep(30 * time.Second)
-			goto Start
+	go func() error {
+		for {
+			if a.CheckIfWon() {
+				time.Sleep(30 * time.Second)
+				// goto Start
+			}
+			err = a.Play(status)
+			if err != nil {
+				return err
+			}
+			err = a.OpponentShots()
+			if err != nil {
+				return err
+			}
 		}
-		err = a.Play(status)
-		if err != nil {
-			return err
-		}
-		// err = a.OpponentShots(board)
-		// if err != nil {
-		// 	return err
-		// }
-	}
+	}()
+	a.ShowBoard()
+	return nil
 }

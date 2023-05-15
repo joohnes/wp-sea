@@ -59,11 +59,11 @@ func (c *Client) PrintToken() {
 func (c *Client) InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error {
 	fmt.Println("Connecting to server...")
 	params := map[string]any{
-		"coords":          coords,
-		"desc":            desc,
-		"nick":            nick,
-		"target_opponent": targetOpponent,
-		"wpbot":           wpbot,
+		"coords":      coords,
+		"desc":        desc,
+		"nick":        nick,
+		"target_nick": targetOpponent,
+		"wpbot":       wpbot,
 	}
 
 	data, err := json.Marshal(params)
