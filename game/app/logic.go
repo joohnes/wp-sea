@@ -60,13 +60,12 @@ func (a *App) CheckIfWon() bool {
 	return false
 }
 
-func (a *App) Shoot() error {
+func (a *App) Shoot(coord string) error {
 	err := a.WaitForTurn()
 	if err != nil {
 		return err
 	}
 Again:
-	coord, err := a.getCoord()
 	if err != nil {
 		return err
 	}
@@ -103,11 +102,14 @@ Again:
 // TUTAJ SIE KOŃCZĄ DOBRE FUNKCJE
 ////////////////////////////////////////////
 
-func (a *App) Play(status *StatusResponse) error {
-
-	err := a.Shoot()
-	if err != nil {
-		return err
+func (a *App) Play(status *StatusResponse, coordchan chan string) error {
+	var coord string
+	select {
+	case coordchan <- coord:
+		err := a.Shoot(coord)
+		if err != nil {
+			return err
+		}
 	}
 	fmt.Print("Waiting for bot")
 	for i := 0; i < 2; i++ {

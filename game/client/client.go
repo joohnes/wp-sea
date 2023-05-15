@@ -331,6 +331,9 @@ func (c *Client) StatsPlayer(nick string) ([]int, error) {
 		return []int{}, err
 	}
 	urlPath, err = url.JoinPath(urlPath, nick)
+	if err != nil {
+		return []int{}, err
+	}
 	req, err := http.NewRequest(http.MethodGet, urlPath, http.NoBody)
 	if err != nil {
 		return []int{}, err

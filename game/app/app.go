@@ -74,13 +74,14 @@ func (a *App) Run() error {
 
 	// MAIN GAME LOOP
 
+	coordchan := make(chan string)
 	go func() error {
 		for {
 			if a.CheckIfWon() {
 				time.Sleep(30 * time.Second)
 				// goto Start
 			}
-			err = a.Play(status)
+			err = a.Play(status, coordchan)
 			if err != nil {
 				return err
 			}
@@ -90,6 +91,6 @@ func (a *App) Run() error {
 			}
 		}
 	}()
-	a.ShowBoard()
+	a.ShowBoard(coordchan)
 	return nil
 }

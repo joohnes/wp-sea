@@ -7,7 +7,7 @@ import (
 	gui "github.com/grupawp/warships-gui/v2"
 )
 
-func (a *App) ShowBoard() {
+func (a *App) ShowBoard(coordchan chan string) {
 	ui := gui.NewGUI(true)
 	txt := gui.NewText(1, 1, "Press Ctrl+C to exit", nil)
 	ui.Draw(txt)
@@ -28,6 +28,9 @@ func (a *App) ShowBoard() {
 	ui.Draw(oppNick)
 	ui.Draw(oppDesc)
 
+	turnText := gui.NewText(1, 30, "", nil)
+	ui.Draw(turnText)
+
 	for i := range a.my_states {
 		a.my_states[i] = [10]gui.State{}
 		a.enemy_states[i] = [10]gui.State{}
@@ -38,8 +41,17 @@ func (a *App) ShowBoard() {
 		for {
 			char := enemy_board.Listen(context.TODO())
 			txt.SetText(fmt.Sprintf("Coordinate: %s", char))
+			coordchan <- char
 			ui.Log("Coordinate: %s", char) // logs are displayed after the game exits
 		}
 	}()
+
+	// go func(cause error) {
+	// 	for {
+	// 		select {
+
+	// 		}
+	// 	}
+	// }
 	ui.Start(nil)
 }
