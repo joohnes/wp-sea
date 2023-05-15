@@ -41,48 +41,51 @@ func (a *App) WaitForTurn() error {
 	return nil
 }
 
-func (a *App) Shoot(bd *board.Board) (string, error) {
+func (a *App) Shoot() error {
 	err := a.WaitForTurn()
 	if err != nil {
-		return "", err
+		return err
 	}
 	coord, err := a.getCoord()
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	result, err := a.client.Shoot(coord)
 	if err != nil {
-		return "", err
+		return err
 	}
+
 	switch result {
 	case "miss":
-		bd.Set(board.Right, coord, board.Miss)
+		// bd.Set(board.Right, coord, board.Miss)
+		a.enemy_states[coord[0]-97][coord[1]-49] = "Miss"
+		a.shotsCount += 1
 	case "hit":
-		bd.Set(board.Right, coord, board.Hit)
+		// bd.Set(board.Right, coord, board.Hit)
+		a.enemy_states[coord[0]-97][coord[1]-49] = "Hit"
+		a.shotsCount += 1
+		a.shotsHit += 1
 	case "sunk":
-		bd.Set(board.Right, coord, board.Hit)
-		bd.CreateBorder(board.Right, coord)
+		// bd.Set(board.Right, coord, board.Hit)
+		// bd.CreateBorder(board.Right, coord)
+		a.enemy_states[coord[0]-97][coord[1]-49] = "Hit"
+		a.shotsCount += 1
+		a.shotsHit += 1
 	}
 
-	return result, nil
+	return nil
 }
 
-func (a *App) Play(board *board.Board, status *StatusResponse) error {
+func (a *App) Play(status *StatusResponse) error {
 	for {
-		result, err := a.Shoot(board)
+		err := a.Shoot()
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
-		a.show(board, status)
-		if result == "miss" {
-			a.shotsCount += 1
-			break
-		} else {
-			a.shotsCount += 1
-			a.shotsHit += 1
-		}
+		// a.show(board, status)
+
 	}
 	fmt.Print("Waiting for bot")
 	for i := 0; i < 2; i++ {
@@ -185,6 +188,8 @@ func (a *App) ChooseOption() error {
 		if err != nil {
 			return err
 		}
+		a.client.Refresh()
+		time.Sleep(time.Second * 1)
 		fmt.Printf("'%s'", playerlist[i]["nick"])
 		err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
 		if err != nil {

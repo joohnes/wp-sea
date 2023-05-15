@@ -51,7 +51,7 @@ func (a *App) getCoord() (string, error) { // dodac obsluge błędu
 		}
 		return "", errors.New("please enter a valid coordinate (use number from 1 to 10)")
 	}
-	return strings.Join(coordList, ""), nil
+	return strings.ToLower(strings.Join(coordList, "")), nil
 }
 
 func (a *App) getAnswer() (string, error) {
