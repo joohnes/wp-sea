@@ -3,18 +3,18 @@ package app
 import (
 	"context"
 	"fmt"
-
 	gui "github.com/grupawp/warships-gui/v2"
+	"time"
 )
 
-func (a *App) ShowBoard(coordchan chan string) {
+func (a *App) ShowBoard(coordchan chan<- string, textchan <-chan string, errorchan <-chan error, timeLeftchan <-chan int) {
 	ui := gui.NewGUI(true)
 	txt := gui.NewText(1, 1, "Press Ctrl+C to exit", nil)
 	ui.Draw(txt)
-	my_board := gui.NewBoard(1, 4, nil)
-	ui.Draw(my_board)
-	enemy_board := gui.NewBoard(50, 4, nil)
-	ui.Draw(enemy_board)
+	myBoard := gui.NewBoard(1, 4, nil)
+	ui.Draw(myBoard)
+	enemyBoard := gui.NewBoard(50, 4, nil)
+	ui.Draw(enemyBoard)
 
 	//TEXTS
 	timer := gui.NewText(1, 2, "Timer: ", nil)
@@ -28,30 +28,61 @@ func (a *App) ShowBoard(coordchan chan string) {
 	ui.Draw(oppNick)
 	ui.Draw(oppDesc)
 
-	turnText := gui.NewText(1, 30, "", nil)
+	turnText := gui.NewText(50, 1, "", nil)
 	ui.Draw(turnText)
+	chanText := gui.NewText(1, 31, "test", nil)
+	ui.Draw(chanText)
+	errorText := gui.NewText(1, 32, "error", nil)
+	ui.Draw(errorText)
 
-	for i := range a.my_states {
-		a.my_states[i] = [10]gui.State{}
-		a.enemy_states[i] = [10]gui.State{}
-	}
-	my_board.SetStates(a.my_states)
-	enemy_board.SetStates(a.enemy_states)
+	//for i := range a.myStates {
+	//	a.myStates[i] = [10]gui.State{}
+	//	a.enemyStates[i] = [10]gui.State{}
+	//}
+	myBoard.SetStates(a.myStates)
+	enemyBoard.SetStates(a.enemyStates)
 	go func() {
 		for {
-			char := enemy_board.Listen(context.TODO())
+			char := enemyBoard.Listen(context.TODO())
 			txt.SetText(fmt.Sprintf("Coordinate: %s", char))
 			coordchan <- char
-			ui.Log("Coordinate: %s", char) // logs are displayed after the game exits
+			ui.Log("Coordinate: %s", char)
 		}
 	}()
 
-	// go func(cause error) {
-	// 	for {
-	// 		select {
+	go func() {
+		for {
+			select {
+			case text := <-textchan:
+				chanText.SetText(text)
 
-	// 		}
-	// 	}
-	// }
+			case err := <-errorchan:
+				errorText.SetText(err.Error())
+			case timeLeft := <-timeLeftchan:
+				timer.SetText(fmt.Sprintf("Time left: %v", timeLeft))
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			switch a.gameState {
+			case StatePlayerTurn:
+				turnText.SetText("Your Turn!")
+			case StateOppTurn:
+				turnText.SetText("Enemy's turn!")
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			myBoard.SetStates(a.myStates)
+			enemyBoard.SetStates(a.enemyStates)
+		}
+	}()
+
 	ui.Start(nil)
+
 }

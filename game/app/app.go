@@ -1,8 +1,7 @@
 package app
 
 import (
-	"time"
-
+	"context"
 	gui "github.com/grupawp/warships-gui/v2"
 )
 
@@ -29,8 +28,10 @@ type App struct {
 	oppDesc      string
 	shotsCount   int
 	shotsHit     int
-	my_states    [10][10]gui.State
-	enemy_states [10][10]gui.State
+	myStates     [10][10]gui.State
+	enemyStates  [10][10]gui.State
+	gameState    Gamestate
+	actualStatus StatusResponse
 }
 
 func New(c client) *App {
@@ -45,11 +46,12 @@ func New(c client) *App {
 		0,
 		[10][10]gui.State{},
 		[10][10]gui.State{},
+		StateStart,
+		StatusResponse{},
 	}
 }
 
 func (a *App) Run() error {
-	// Start:
 	err := a.getName()
 	if err != nil {
 		return err
@@ -62,7 +64,7 @@ func (a *App) Run() error {
 	if err != nil {
 		return err
 	}
-	status, err := a.WaitForStart()
+	_, err = a.WaitForStart()
 	if err != nil {
 		return err
 	}
@@ -71,26 +73,31 @@ func (a *App) Run() error {
 	if err != nil {
 		return err
 	}
+	err = a.GetBoard()
+	if err != nil {
+		return err
+	}
 
-	// MAIN GAME LOOP
-
+	// SETUP CHANNELS
 	coordchan := make(chan string)
-	go func() error {
-		for {
-			if a.CheckIfWon() {
-				time.Sleep(30 * time.Second)
-				// goto Start
-			}
-			err = a.Play(status, coordchan)
-			if err != nil {
-				return err
-			}
-			err = a.OpponentShots()
-			if err != nil {
-				return err
-			}
-		}
-	}()
-	a.ShowBoard(coordchan)
+	textchan := make(chan string)
+	errorchan := make(chan error)
+	timeLeftchan := make(chan int)
+	resetTimerchan := make(chan int)
+	//
+
+	// SETUP CONTEXTS
+	ctx, cancel := context.WithCancel(context.Background())
+	//
+
+	// SETUP GOROUTINES
+	go a.CheckStatus(ctx, cancel, textchan)
+	go a.OpponentShots(ctx, errorchan)
+	go a.Play(ctx, coordchan, textchan, errorchan, resetTimerchan)
+	go a.Timer(ctx, timeLeftchan, resetTimerchan)
+	//
+
+	// SHOW BOARD
+	a.ShowBoard(coordchan, textchan, errorchan, timeLeftchan)
 	return nil
 }
