@@ -98,6 +98,6 @@ func (a *App) Run() error {
 	//
 
 	// SHOW BOARD
-	a.ShowBoard(coordchan, textchan, errorchan, timeLeftchan)
+	a.ShowBoard(ctx, coordchan, textchan, errorchan, timeLeftchan)
 	return nil
 }

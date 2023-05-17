@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (a *App) ShowBoard(coordchan chan<- string, textchan <-chan string, errorchan <-chan error, timeLeftchan <-chan int) {
+func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <-chan string, errorchan <-chan error, timeLeftchan <-chan int) {
 	ui := gui.NewGUI(true)
 	txt := gui.NewText(1, 1, "Press Ctrl+C to exit", nil)
 	ui.Draw(txt)
@@ -35,10 +35,6 @@ func (a *App) ShowBoard(coordchan chan<- string, textchan <-chan string, errorch
 	errorText := gui.NewText(1, 32, "error", nil)
 	ui.Draw(errorText)
 
-	//for i := range a.myStates {
-	//	a.myStates[i] = [10]gui.State{}
-	//	a.enemyStates[i] = [10]gui.State{}
-	//}
 	myBoard.SetStates(a.myStates)
 	enemyBoard.SetStates(a.enemyStates)
 	go func() {
@@ -83,6 +79,54 @@ func (a *App) ShowBoard(coordchan chan<- string, textchan <-chan string, errorch
 		}
 	}()
 
-	ui.Start(nil)
+	ui.Start(ctx, nil)
 
+}
+
+func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan chan error) {
+	ui := gui.NewGUI(true)
+	txt := gui.NewText(1, 1, "Press Ctrl+C to exit", nil)
+	ui.Draw(txt)
+	myBoard := gui.NewBoard(1, 4, nil)
+	ui.Draw(myBoard)
+	errorText := gui.NewText(1, 32, "error", nil)
+	ui.Draw(errorText)
+	myBoard.SetStates(a.myStates)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				char := myBoard.Listen(context.TODO())
+				txt.SetText(fmt.Sprintf("Coordinate: %s", char))
+				shipchannel <- char
+				//ui.Log("Coordinate: %s", char)
+			}
+		}
+	}()
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case err := <-errorchan:
+				errorText.SetText(err.Error())
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				time.Sleep(200 * time.Millisecond)
+				myBoard.SetStates(a.myStates)
+			}
+		}
+	}()
+
+	ui.Start(ctx, nil)
 }
