@@ -60,7 +60,7 @@ func (a *App) CheckIfWon() bool {
 	return false
 }
 
-func (a *App) Shoot(coord string) error {
+func (a *App) Shoot(coord string, errorchan chan error) error {
 	//	err := a.WaitForTurn()
 	//	if err != nil {
 	//		return err
@@ -80,21 +80,19 @@ func (a *App) Shoot(coord string) error {
 
 	switch result {
 	case "miss":
-		// bd.Set(board.Right, coord, board.Miss)
 		a.enemyStates[coordmap["x"]][coordmap["y"]] = "Miss"
 		a.shotsCount += 1
 		a.gameState = StateOppTurn
 	case "hit":
-		// bd.Set(board.Right, coord, board.Hit)
 		a.enemyStates[coordmap["x"]][coordmap["y"]] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
 	case "sunk":
-		// bd.Set(board.Right, coord, board.Hit)
-		// bd.CreateBorder(board.Right, coord)
 		a.enemyStates[coordmap["x"]][coordmap["y"]] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
+		a.MarkBorders(context.Background(), coordmap, errorchan)
+
 	}
 
 	return nil
@@ -104,7 +102,7 @@ func (a *App) Shoot(coord string) error {
 // TUTAJ SIE KOŃCZĄ DOBRE FUNKCJE
 ////////////////////////////////////////////
 
-func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<- string, errorchan chan<- error, resettime chan int) {
+func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<- string, errorchan chan error, resettime chan int) {
 	var coord string
 	for {
 		select {
@@ -113,7 +111,7 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<-
 			if err != nil {
 				errorchan <- err
 			}
-			err = a.Shoot(coord)
+			err = a.Shoot(coord, errorchan)
 			if err != nil {
 				errorchan <- err
 			}

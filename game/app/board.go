@@ -77,7 +77,7 @@ func (a *App) ShowBoard(coordchan chan<- string, textchan <-chan string, errorch
 
 	go func() {
 		for {
-			time.Sleep(time.Second)
+			time.Sleep(200 * time.Millisecond)
 			myBoard.SetStates(a.myStates)
 			enemyBoard.SetStates(a.enemyStates)
 		}
