@@ -31,6 +31,13 @@ func createLogger(fname string) *logging {
 	if err != nil {
 		fmt.Println("Error reading given path:", err)
 	}
+	if _, err := os.Stat("logs"); err != nil {
+		if os.IsNotExist(err) {
+			if err := os.Mkdir("logs", os.ModePerm); err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
 	file, _ := os.OpenFile(absPath+"/"+fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 
 	return &logging{
