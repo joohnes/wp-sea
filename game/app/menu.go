@@ -4,7 +4,41 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	table "github.com/jedib0t/go-pretty/v6/table"
 )
+
+func (a *App) ShowStats() error {
+	data, err := a.client.Stats()
+	if err != nil {
+		return err
+	}
+	t := table.NewWriter()
+	t.SetTitle("Stats")
+
+	t.AppendHeader(table.Row{"#", "Nick", "Games", "Points", "Rank", "Wins"})
+	counter := 1
+	for i, x := range data {
+		t.AppendRow(table.Row{counter, i, x[0], x[1], x[2], x[3]})
+		counter += 1
+	}
+	fmt.Println(t.Render())
+	return nil
+}
+func (a *App) ShowPlayerStats() error {
+	data, err := a.client.StatsPlayer(a.nick)
+	if err != nil {
+		return err
+	}
+	t := table.NewWriter()
+	t.SetTitle(fmt.Sprintf("%s's stats", a.nick))
+
+	t.AppendHeader(table.Row{"Nick", "Games", "Points", "Rank", "Wins"})
+
+	t.AppendRow(table.Row{a.nick, data[0], data[1], data[2], data[3]})
+	fmt.Println(t.Render())
+	return nil
+}
 
 func (a *App) ChooseOption() error {
 	fmt.Println("1. Play with WPBot")
@@ -92,30 +126,16 @@ func (a *App) ChooseOption() error {
 			}
 		}
 	case "3": // top10
-		table, err := a.client.Stats()
+		err := a.ShowStats()
 		if err != nil {
 			return err
-		}
-		fmt.Println("Top 10 players")
-		fmt.Println("Nick | Games | Points | Rank | Wins")
-		for i, x := range table {
-			text := i
-			for _, y := range x {
-				text += string(y) + "   "
-			}
-			fmt.Println(text)
 		}
 	case "4": // stats
-		table, err := a.client.StatsPlayer(a.nick)
+		err := a.ShowPlayerStats()
 		if err != nil {
 			return err
 		}
-		fmt.Println("Stats for player: ", a.nick)
-		fmt.Println("Games | Points | Rank | Wins")
-		text := ""
-		for _, x := range table {
-			text += string(x) + " "
-		}
+
 	case "5": //set up ships
 	}
 	return nil
