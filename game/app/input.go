@@ -64,6 +64,9 @@ func (a *App) getAnswer() (string, error) {
 	if err := scanner.Err(); err != nil {
 		return "", err
 	}
+	if len(string(answer)) == 0 {
+		return "", nil
+	}
 	return strings.ToLower(string(answer[0])), nil
 }
 

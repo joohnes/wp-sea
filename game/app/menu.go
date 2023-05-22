@@ -23,6 +23,8 @@ func (a *App) ShowStats() error {
 		counter += 1
 	}
 	fmt.Println(t.Render())
+	fmt.Println("Press enter to go back to the menu")
+	fmt.Scanln()
 	return nil
 }
 func (a *App) ShowPlayerStats() error {
@@ -37,93 +39,116 @@ func (a *App) ShowPlayerStats() error {
 
 	t.AppendRow(table.Row{a.nick, data[0], data[1], data[2], data[3]})
 	fmt.Println(t.Render())
+	fmt.Println("Press enter to go back to the menu")
+	fmt.Scanln()
+	return nil
+}
+
+func PrintOptions() {
+	t := table.NewWriter()
+	t.SetTitle("MENU")
+
+	t.AppendHeader(table.Row{"#", "Choose an option"})
+
+	t.AppendRow(table.Row{1, "Play with WPBot"})
+	t.AppendRow(table.Row{2, "Play with another player"})
+	t.AppendRow(table.Row{3, "Top 10 players"})
+	t.AppendRow(table.Row{4, "Your stats"})
+	t.AppendRow(table.Row{5, "Set up your ships"})
+	fmt.Println(t.Render())
+}
+
+func (a *App) ChoosePlayer() error {
+	playerlist, err := a.client.PlayerList()
+	if err != nil {
+		return err
+	}
+	if len(playerlist) != 0 {
+
+		fmt.Println("Waiting players: ")
+		for i, x := range playerlist {
+			fmt.Println(i, x["nick"])
+		}
+		fmt.Println("Do you want to wait for another player? y/n")
+		answer, err := a.getAnswer()
+		if err != nil {
+			return err
+		}
+		if answer == "y" {
+			fmt.Println("Waiting...")
+			err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+			if err != nil {
+				return err
+			}
+			go func() {
+				if a.actualStatus.Game_status == "waiting" {
+					_ = a.client.Refresh()
+					time.Sleep(10 * time.Second)
+				} else {
+					return
+				}
+			}()
+			return nil
+		}
+
+		fmt.Println("Choose a player number: ")
+		answer, err = a.getAnswer()
+		if err != nil {
+			return err
+		}
+		i, err := strconv.Atoi(answer)
+		if err != nil {
+			return err
+		}
+		time.Sleep(time.Second * 1)
+		fmt.Printf("'%s'", playerlist[i]["nick"])
+		err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
+		if err != nil {
+			return err
+		}
+	} else {
+		fmt.Println("No players waiting at the moment")
+		fmt.Println("Do you want to wait for another player? y/n")
+		answer, err := a.getAnswer()
+		if err != nil {
+			return err
+		}
+		switch answer {
+		case "y":
+			err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+			if err != nil {
+				return err
+			}
+			return nil
+		case "n":
+			return nil
+		default:
+			fmt.Println("Please enter a number from the list!")
+		}
+	}
+	a.gameState = StateWaiting
 	return nil
 }
 
 func (a *App) ChooseOption() error {
-	fmt.Println("1. Play with WPBot")
-	fmt.Println("2. Play with another player")
-	fmt.Println("3. Top 10")
-	fmt.Println("4. Check your stats")
-	fmt.Println("5. Set up your ships")
-	fmt.Println("Choose an option (number): ")
+	PrintOptions()
+Start:
 	answer, err := a.getAnswer()
 	if err != nil {
 		return err
 	}
+
 	switch answer {
-	case "1":
+	case "1": // play with bot
 		err := a.client.InitGame(nil, a.desc, a.nick, "", true)
 		if err != nil {
 			return err
 		}
-	case "2":
-		playerlist, err := a.client.PlayerList()
+		a.gameState = StateWaiting
+	case "2": // play with another player
+		err := a.ChoosePlayer()
 		if err != nil {
 			return err
-		}
-		if len(playerlist) != 0 {
-
-			fmt.Println("Waiting players: ")
-			for i, x := range playerlist {
-				fmt.Println(i, x["nick"])
-			}
-			fmt.Println("Do you want to wait for another player? y/n")
-			answer, err = a.getAnswer()
-			if err != nil {
-				return err
-			}
-			if answer == "y" {
-				fmt.Println("Waiting...")
-				err = a.client.InitGame(nil, a.desc, a.nick, "", false)
-				if err != nil {
-					return err
-				}
-				go func() {
-					if a.actualStatus.Game_status == "waiting" {
-						_ = a.client.Refresh()
-						time.Sleep(10 * time.Second)
-					} else {
-						return
-					}
-				}()
-				return nil
-			}
-
-			fmt.Println("Choose a player number: ")
-			answer, err = a.getAnswer()
-			if err != nil {
-				return err
-			}
-			i, err := strconv.Atoi(answer)
-			if err != nil {
-				return err
-			}
-			time.Sleep(time.Second * 1)
-			fmt.Printf("'%s'", playerlist[i]["nick"])
-			err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
-			if err != nil {
-				return err
-			}
-		} else {
-			fmt.Println("No players waiting at the moment")
-			fmt.Println("Do you want to wait for another player? y/n")
-			answer, err = a.getAnswer()
-			if err != nil {
-				return err
-			}
-			switch answer {
-			case "y":
-				err = a.client.InitGame(nil, a.desc, a.nick, "", false)
-				if err != nil {
-					return err
-				}
-				return nil
-			case "n":
-				return nil
-			default:
-				fmt.Println("Please enter a number from the list!")
-			}
 		}
 	case "3": // top10
 		err := a.ShowStats()
@@ -137,6 +162,9 @@ func (a *App) ChooseOption() error {
 		}
 
 	case "5": //set up ships
+	default:
+		fmt.Println("Please enter a valid number!")
+		goto Start
 	}
 	return nil
 }

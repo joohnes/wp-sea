@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+
 	gui "github.com/grupawp/warships-gui/v2"
 )
 
@@ -60,10 +61,16 @@ func (a *App) Run() error {
 	if err != nil {
 		return err
 	}
-	err = a.ChooseOption()
-	if err != nil {
-		return err
+	for {
+		err = a.ChooseOption()
+		if err != nil {
+			return err
+		}
+		if a.gameState == StateWaiting {
+			break
+		}
 	}
+
 	_, err = a.WaitForStart()
 	if err != nil {
 		return err
