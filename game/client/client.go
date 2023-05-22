@@ -80,6 +80,9 @@ func (c *Client) InitGame(coords []string, desc, nick, targetOpponent string, wp
 		return err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return errors.New("could not init game")
+	}
 
 	c.token = resp.Header.Get(tokenHeader)
 	if c.token != resp.Header.Get(tokenHeader) {
@@ -108,7 +111,9 @@ func (c *Client) Board() ([]string, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
+	if resp.StatusCode != 200 {
+		return []string{}, errors.New("could not retrieve board")
+	}
 	body := Board{}
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
@@ -138,7 +143,9 @@ func (c *Client) Status() (*app.StatusResponse, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
+	if resp.StatusCode != 200 {
+		return nil, errors.New("could not retrieve status")
+	}
 	body := app.StatusResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
@@ -175,7 +182,9 @@ func (c *Client) Shoot(coord string) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-
+	if resp.StatusCode != 200 {
+		return "", errors.New("could not shoot")
+	}
 	var body map[string]string
 
 	err = json.NewDecoder(resp.Body).Decode(&body)
@@ -205,6 +214,9 @@ func (c *Client) Resign() error {
 		return err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return errors.New("could not resign")
+	}
 	fmt.Println("You have successfully resigned the game!")
 	return nil
 }
@@ -228,6 +240,10 @@ func (c *Client) GetOppDesc() (string, string, error) {
 		return "", "", err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return "", "", errors.New("could not retrieve opp description")
+	}
 	var body map[string]interface{}
 
 	err = json.NewDecoder(resp.Body).Decode(&body)
@@ -258,6 +274,9 @@ func (c *Client) Refresh() error {
 		return err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return errors.New("could not refresh")
+	}
 	return nil
 }
 
@@ -280,6 +299,9 @@ func (c *Client) PlayerList() ([]map[string]string, error) {
 		return []map[string]string{}, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return []map[string]string{}, errors.New("could not get player list")
+	}
 	var body []map[string]string
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
@@ -307,7 +329,7 @@ func (c *Client) Stats() (map[string][]int, error) {
 		return map[string][]int{}, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == 404 {
+	if resp.StatusCode != 200 {
 		return map[string][]int{}, errors.New("player not found")
 	}
 	var body map[string][]Stats
@@ -349,7 +371,7 @@ func (c *Client) StatsPlayer(nick string) ([]int, error) {
 		return []int{}, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == 404 {
+	if resp.StatusCode != 200 {
 		return []int{}, errors.New("player not found")
 	}
 	var body map[string]Stats

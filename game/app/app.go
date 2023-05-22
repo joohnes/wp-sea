@@ -2,9 +2,12 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	gui "github.com/grupawp/warships-gui/v2"
 )
+
+const showErrors = false
 
 type client interface {
 	InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error
@@ -53,38 +56,79 @@ func New(c client) *App {
 }
 
 func (a *App) Run() error {
-	err := a.getName()
-	if err != nil {
-		return err
-	}
-	err = a.getDesc()
-	if err != nil {
-		return err
-	}
+	logger := GetLoggerInstance()
+
 	for {
-		err = a.ChooseOption()
-		if err != nil {
-			return err
-		}
-		if a.gameState == StateWaiting {
+		err := a.getName()
+		if err == nil {
 			break
 		}
+		if err != nil && showErrors {
+			logger.Println(err)
+		}
+		fmt.Println("Error occured. Please try again")
 	}
 
-	_, err = a.WaitForStart()
+	for {
+		err := a.getDesc()
+		if err == nil {
+			break
+		}
+		if err != nil && showErrors {
+			logger.Println(err)
+		}
+		fmt.Println("Error occured. Please try again")
+	}
+
+	for {
+		err := a.ChooseOption()
+		if err == nil {
+			break
+		}
+		if err != nil && showErrors {
+			logger.Println(err)
+		}
+		if a.gameState != StateStart {
+			break
+		}
+		fmt.Println("Server error occured. Please try again")
+	}
+
+	for {
+		err := a.WaitForStart()
+		if err == nil {
+			break
+		}
+		if err != nil && showErrors {
+			logger.Println(err)
+		}
+	}
+	err := ServerErrorWrapper(a.WaitForStart)
 	if err != nil {
 		return err
 	}
 
-	a.oppNick, a.oppDesc, err = a.client.GetOppDesc()
-	if err != nil {
-		return err
-	}
-	err = a.GetBoard()
-	if err != nil {
-		return err
+	for {
+		var err error
+		a.oppNick, a.oppDesc, err = a.client.GetOppDesc()
+		if err == nil {
+			break
+		}
+		if err != nil && showErrors {
+			logger.Println(err)
+		}
 	}
 
+	for {
+		err := a.GetBoard()
+		if err == nil {
+			break
+		}
+		if err != nil && showErrors {
+			logger.Println(err)
+		}
+		fmt.Println("Server error occured. Please try again")
+	}
 	// SETUP CHANNELS
 	coordchan := make(chan string)
 	textchan := make(chan string)

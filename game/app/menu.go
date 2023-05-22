@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -9,10 +10,19 @@ import (
 )
 
 func (a *App) ShowStats() error {
-	data, err := a.client.Stats()
+	var data map[string][]int
+	err := ServerErrorWrapper(func() error {
+		var err error
+		data, err = a.client.Stats()
+		if err != nil {
+			return err
+		}
+		return errors.New("error")
+	})
 	if err != nil {
 		return err
 	}
+
 	t := table.NewWriter()
 	t.SetTitle("Stats")
 
@@ -131,35 +141,51 @@ func (a *App) ChoosePlayer() error {
 }
 
 func (a *App) ChooseOption() error {
+	log := GetLoggerInstance()
 	PrintOptions()
 Start:
 	answer, err := a.getAnswer()
 	if err != nil {
-		return err
+		log.Println(err)
+		goto Start
 	}
 
 	switch answer {
 	case "1": // play with bot
-		err := a.client.InitGame(nil, a.desc, a.nick, "", true)
+		err := ServerErrorWrapper(func() error {
+			err := a.client.InitGame(nil, a.desc, a.nick, "", true)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
 		a.gameState = StateWaiting
+
 	case "2": // play with another player
-		err := a.ChoosePlayer()
-		if err != nil {
-			return err
+		for {
+			err := a.ChoosePlayer()
+			if err != nil {
+				log.Println(err)
+				fmt.Println("Error occured. Please try again")
+				continue
+			}
+			break
 		}
 	case "3": // top10
 		err := a.ShowStats()
 		if err != nil {
 			return err
 		}
+		goto Start
 	case "4": // stats
 		err := a.ShowPlayerStats()
 		if err != nil {
 			return err
 		}
+		goto Start
 
 	case "5": //set up ships
 	default:

@@ -13,15 +13,15 @@ const (
 	waitDuration = 3
 )
 
-func (a *App) WaitForStart() (status *StatusResponse, err error) {
+func (a *App) WaitForStart() (err error) {
 	for {
 		status, err := a.client.Status()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if status.Game_status == "game_in_progress" {
 			a.actualStatus = *status
-			return status, nil
+			return nil
 		}
 		time.Sleep(waitDuration * time.Second)
 	}
