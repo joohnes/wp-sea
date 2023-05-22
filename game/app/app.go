@@ -63,10 +63,12 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		if err != nil && showErrors {
+		if err != nil {
 			logger.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
 		}
-		fmt.Println("Error occured. Please try again")
 	}
 
 	for {
@@ -74,10 +76,12 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		if err != nil && showErrors {
+		if err != nil {
 			logger.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
 		}
-		fmt.Println("Error occured. Please try again")
 	}
 
 	for {
@@ -85,8 +89,11 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		if err != nil && showErrors {
+		if err != nil {
 			logger.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
 		}
 		if a.gameState != StateStart {
 			break
@@ -99,8 +106,11 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		if err != nil && showErrors {
+		if err != nil {
 			logger.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
 		}
 	}
 	err := ServerErrorWrapper(a.WaitForStart)
@@ -108,26 +118,33 @@ func (a *App) Run() error {
 		return err
 	}
 
-	for {
-		var err error
-		a.oppNick, a.oppDesc, err = a.client.GetOppDesc()
-		if err == nil {
-			break
-		}
-		if err != nil && showErrors {
-			logger.Println(err)
-		}
-	}
+	// for {
+	// 	var err error
+	// 	err := ServerErrorWrapper(func() error {
+	// 		a.oppDesc, a.oppNick, err = a.client.GetOppDesc()
+	// 	})g
+	// 	if err == nil {
+	// 		break
+	// 	}
+	// 	if err != nil {
+	// 		logger.Println(err)
+	// 		if showErrors {
+	// 			fmt.Println(err)
+	// 		}
+	// 	}
+	// }
 
 	for {
 		err := a.GetBoard()
 		if err == nil {
 			break
 		}
-		if err != nil && showErrors {
+		if err != nil {
 			logger.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
 		}
-		fmt.Println("Server error occured. Please try again")
 	}
 	// SETUP CHANNELS
 	coordchan := make(chan string)

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -17,7 +16,7 @@ func (a *App) ShowStats() error {
 		if err != nil {
 			return err
 		}
-		return errors.New("error")
+		return nil
 	})
 	if err != nil {
 		return err
@@ -69,7 +68,15 @@ func PrintOptions() {
 }
 
 func (a *App) ChoosePlayer() error {
-	playerlist, err := a.client.PlayerList()
+	var playerlist []map[string]string
+	err := ServerErrorWrapper(func() error {
+		var err error
+		playerlist, err = a.client.PlayerList()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
@@ -142,8 +149,8 @@ func (a *App) ChoosePlayer() error {
 
 func (a *App) ChooseOption() error {
 	log := GetLoggerInstance()
-	PrintOptions()
 Start:
+	PrintOptions()
 	answer, err := a.getAnswer()
 	if err != nil {
 		log.Println(err)

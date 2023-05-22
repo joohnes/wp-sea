@@ -16,9 +16,8 @@ func ServerErrorWrapper(f func() error) error {
 			return nil
 		}
 		if err != nil && showErrors {
-			log.Println(err)
+			fmt.Printf("#%d - Server error occured. Please wait\n", x+1)
 		}
-		fmt.Printf("#%d - Server error occured. Please wait\n", x+1)
 		log.Printf("#%d - Server error occured. Please wait\n", x+1)
 		time.Sleep(1 * time.Second)
 	}
