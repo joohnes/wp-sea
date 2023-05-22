@@ -19,8 +19,8 @@ const (
 	urlResign    = "/api/game/abandon"
 	urlOppDesc   = "/api/game/desc"
 	urlRefresh   = "/api/game/refresh"
-	urlList      = "/api/game/list"
-	urlStats     = "/api/game/stats"
+	urlList      = "/api/list"
+	urlStats     = "/api/stats"
 	tokenHeader  = "X-Auth-Token"
 	errAuthToken = "no auth token"
 )
@@ -307,7 +307,9 @@ func (c *Client) Stats() (map[string][]int, error) {
 		return map[string][]int{}, err
 	}
 	defer resp.Body.Close()
-
+	if resp.StatusCode == 404 {
+		return map[string][]int{}, errors.New("player not found")
+	}
 	var body map[string][]Stats
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
@@ -347,7 +349,9 @@ func (c *Client) StatsPlayer(nick string) ([]int, error) {
 		return []int{}, err
 	}
 	defer resp.Body.Close()
-
+	if resp.StatusCode == 404 {
+		return []int{}, errors.New("player not found")
+	}
 	var body map[string]Stats
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
