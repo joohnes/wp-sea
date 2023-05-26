@@ -6,21 +6,6 @@ import (
 	"strings"
 )
 
-// Returns items in set A that are not in set B
-func Difference(a, b []string) []string {
-	mb := make(map[string]struct{}, len(b))
-	for _, x := range b {
-		mb[x] = struct{}{}
-	}
-	var diff []string
-	for _, x := range a {
-		if _, found := mb[x]; !found {
-			diff = append(diff, x)
-		}
-	}
-	return diff
-}
-
 // change coords to numeric representation
 func NumericCords(coord string) (map[string]uint8, error) {
 	if len(coord) != 2 && len(coord) != 3 {

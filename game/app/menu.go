@@ -2,12 +2,24 @@ package app
 
 import (
 	"fmt"
+	"github.com/inancgumus/screen"
+	table "github.com/jedib0t/go-pretty/v6/table"
 	"github.com/joohnes/wp-sea/game/logger"
+	"sort"
 	"strconv"
 	"time"
-
-	table "github.com/jedib0t/go-pretty/v6/table"
 )
+
+type Pair struct {
+	Key    string
+	Values []int
+}
+
+type PairList []Pair
+
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Less(i, j int) bool { return p[i].Values[1] < p[j].Values[1] }
 
 func (a *App) ShowStats() error {
 	var data map[string][]int
@@ -23,13 +35,26 @@ func (a *App) ShowStats() error {
 		return err
 	}
 
+	p := make(PairList, len(data))
+
+	i := 0
+	for k, v := range data {
+		p[i] = Pair{k, v}
+		i++
+	}
+	sort.Sort(sort.Reverse(p))
+
+	for _, k := range p {
+		fmt.Printf("%v\t%v\n", k.Key, k.Values[1])
+	}
+
 	t := table.NewWriter()
 	t.SetTitle("Stats")
 
 	t.AppendHeader(table.Row{"#", "Nick", "Games", "Points", "Rank", "Wins"})
 	counter := 1
-	for i, x := range data {
-		t.AppendRow(table.Row{counter, i, x[0], x[1], x[2], x[3]})
+	for _, x := range p {
+		t.AppendRow(table.Row{counter, x.Key, x.Values[0], x.Values[1], x.Values[2], x.Values[3]})
 		counter += 1
 	}
 	fmt.Println(t.Render())
@@ -54,10 +79,9 @@ func (a *App) ShowPlayerStats() error {
 	return nil
 }
 
-func PrintOptions() {
+func PrintOptions(nick string) {
 	t := table.NewWriter()
-	t.SetTitle("MENU")
-
+	t.SetTitle(fmt.Sprintf("Nick: %s", nick))
 	t.AppendHeader(table.Row{"#", "Choose an option"})
 
 	t.AppendRow(table.Row{1, "Play with WPBot"})
@@ -151,7 +175,9 @@ func (a *App) ChoosePlayer() error {
 func (a *App) ChooseOption() error {
 	log := logger.GetLoggerInstance()
 Start:
-	PrintOptions()
+	screen.Clear()
+	screen.MoveTopLeft()
+	PrintOptions(a.nick)
 	answer, err := a.getAnswer()
 	if err != nil {
 		log.Println(err)

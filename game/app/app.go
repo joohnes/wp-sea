@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/inancgumus/screen"
 	"github.com/joohnes/wp-sea/game/logger"
+	"time"
 
 	gui "github.com/grupawp/warships-gui/v2"
 )
@@ -58,7 +60,8 @@ func New(c client) *App {
 
 func (a *App) Run() error {
 	log := logger.GetLoggerInstance()
-
+	screen.Clear()
+	screen.MoveTopLeft()
 	for {
 		err := a.getName()
 		if err == nil {
@@ -96,8 +99,10 @@ func (a *App) Run() error {
 		}
 		if err.Error() == "player not found" {
 			fmt.Println("Player not found. Perhaps you did not play any games?")
+			time.Sleep(2 * time.Second)
 			continue
 		}
+		time.Sleep(2 * time.Second)
 		fmt.Println("Server error occurred. Please try again")
 	}
 
