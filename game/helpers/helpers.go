@@ -1,4 +1,4 @@
-package app
+package helpers
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 )
 
 // Returns items in set A that are not in set B
-func difference(a, b []string) []string {
+func Difference(a, b []string) []string {
 	mb := make(map[string]struct{}, len(b))
 	for _, x := range b {
 		mb[x] = struct{}{}
@@ -22,7 +22,7 @@ func difference(a, b []string) []string {
 }
 
 // change coords to numeric representation
-func numericCords(coord string) (map[string]uint8, error) {
+func NumericCords(coord string) (map[string]uint8, error) {
 	if len(coord) != 2 && len(coord) != 3 {
 		return map[string]uint8{}, errors.New("param coord must be of length 2 or 3")
 	}

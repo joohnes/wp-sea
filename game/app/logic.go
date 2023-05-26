@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/joohnes/wp-sea/game/helpers"
 	"strings"
 	"time"
 
@@ -59,16 +60,8 @@ func (a *App) CheckIfWon() bool {
 	return false
 }
 
-func (a *App) Shoot(coord string, errorchan chan error) error {
-	//	err := a.WaitForTurn()
-	//	if err != nil {
-	//		return err
-	//	}
-	//Again:
-	//	if err != nil {
-	//		return err
-	//	}
-	coordmap, err := numericCords(coord)
+func (a *App) Shoot(coord string) error {
+	coordmap, err := helpers.NumericCords(coord)
 	if err != nil {
 		return err
 	}
@@ -90,10 +83,8 @@ func (a *App) Shoot(coord string, errorchan chan error) error {
 		a.enemyStates[coordmap["x"]][coordmap["y"]] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
-		a.MarkBorders(context.Background(), coordmap, errorchan)
-
+		a.MarkBorders(coordmap)
 	}
-
 	return nil
 }
 
@@ -106,11 +97,11 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<-
 	for {
 		select {
 		case coord = <-coordchan:
-			_, err := numericCords(coord)
+			_, err := helpers.NumericCords(coord)
 			if err != nil {
 				errorchan <- err
 			}
-			err = a.Shoot(coord, errorchan)
+			err = a.Shoot(coord)
 			if err != nil {
 				errorchan <- err
 			}
@@ -123,7 +114,7 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<-
 }
 
 func (a *App) HitOrMiss(coord string) error {
-	coordmap, err := numericCords(coord)
+	coordmap, err := helpers.NumericCords(coord)
 	if err != nil {
 		return err
 	}
@@ -178,7 +169,7 @@ func (a *App) OpponentShots(ctx context.Context, errorchan chan<- error) {
 	for {
 		select {
 		case <-oppShotTicker.C:
-			diff := difference(a.actualStatus.Opp_shots, a.oppShots)
+			diff := helpers.Difference(a.actualStatus.Opp_shots, a.oppShots)
 			a.oppShots = a.actualStatus.Opp_shots
 			if len(diff) != 0 {
 				for _, v := range diff {
@@ -209,7 +200,7 @@ func (a *App) GetBoard() error {
 		return err
 	}
 	for _, x := range coords {
-		coordmap, err := numericCords(x)
+		coordmap, err := helpers.NumericCords(x)
 		if err != nil {
 			return err
 		}
@@ -244,7 +235,7 @@ func (a *App) PlaceShips(ctx context.Context, shipchannel chan string, errorchan
 	for {
 		select {
 		case coord := <-shipchannel:
-			coords, err := numericCords(coord)
+			coords, err := helpers.NumericCords(coord)
 			if err != nil {
 				errorchan <- err
 			}

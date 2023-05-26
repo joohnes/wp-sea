@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"game/game/app"
+	"github.com/joohnes/wp-sea/game/app"
 	"net/http"
 	"net/url"
 	"time"

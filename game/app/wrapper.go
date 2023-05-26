@@ -3,13 +3,14 @@ package app
 import (
 	"errors"
 	"fmt"
+	"github.com/joohnes/wp-sea/game/logger"
 	"time"
 )
 
 const maxConnectionTries int = 10
 
 func ServerErrorWrapper(f func() error) error {
-	log := GetLoggerInstance()
+	log := logger.GetLoggerInstance()
 	for x := 0; x < maxConnectionTries; x++ {
 		err := f()
 		if err == nil {

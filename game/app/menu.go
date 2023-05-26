@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/joohnes/wp-sea/game/logger"
 	"strconv"
 	"time"
 
@@ -33,7 +34,7 @@ func (a *App) ShowStats() error {
 	}
 	fmt.Println(t.Render())
 	fmt.Println("Press enter to go back to the menu")
-	fmt.Scanln()
+	_, _ = fmt.Scanln()
 	return nil
 }
 func (a *App) ShowPlayerStats() error {
@@ -49,7 +50,7 @@ func (a *App) ShowPlayerStats() error {
 	t.AppendRow(table.Row{a.nick, data[0], data[1], data[2], data[3]})
 	fmt.Println(t.Render())
 	fmt.Println("Press enter to go back to the menu")
-	fmt.Scanln()
+	_, _ = fmt.Scanln()
 	return nil
 }
 
@@ -148,7 +149,7 @@ func (a *App) ChoosePlayer() error {
 }
 
 func (a *App) ChooseOption() error {
-	log := GetLoggerInstance()
+	log := logger.GetLoggerInstance()
 Start:
 	PrintOptions()
 	answer, err := a.getAnswer()

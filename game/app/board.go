@@ -101,7 +101,7 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 				char := myBoard.Listen(context.TODO())
 				txt.SetText(fmt.Sprintf("Coordinate: %s", char))
 				shipchannel <- char
-				//ui.Log("Coordinate: %s", char)
+				ui.Log("Coordinate: %s", char)
 			}
 		}
 	}()

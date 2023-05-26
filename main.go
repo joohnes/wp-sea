@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"game/game/app"
-	"game/game/client"
+	"github.com/joohnes/wp-sea/game/app"
+	"github.com/joohnes/wp-sea/game/client"
 	"time"
 )
 

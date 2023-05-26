@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/joohnes/wp-sea/game/logger"
 
 	gui "github.com/grupawp/warships-gui/v2"
 )
@@ -56,18 +57,16 @@ func New(c client) *App {
 }
 
 func (a *App) Run() error {
-	logger := GetLoggerInstance()
+	log := logger.GetLoggerInstance()
 
 	for {
 		err := a.getName()
 		if err == nil {
 			break
 		}
-		if err != nil {
-			logger.Println(err)
-			if showErrors {
-				fmt.Println(err)
-			}
+		log.Println(err)
+		if showErrors {
+			fmt.Println(err)
 		}
 	}
 
@@ -76,11 +75,9 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		if err != nil {
-			logger.Println(err)
-			if showErrors {
-				fmt.Println(err)
-			}
+		log.Println(err)
+		if showErrors {
+			fmt.Println(err)
 		}
 	}
 
@@ -89,61 +86,51 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		if err != nil {
-			logger.Println(err)
-			if showErrors {
-				fmt.Println(err)
-			}
+		log.Println(err)
+		if showErrors {
+			fmt.Println(err)
 		}
+
 		if a.gameState != StateStart {
 			break
 		}
-		fmt.Println("Server error occured. Please try again")
+		fmt.Println("Server error occurred. Please try again")
+	}
+
+	err := ServerErrorWrapper(a.WaitForStart)
+	if err != nil {
+		log.Println(err)
+		if showErrors {
+			fmt.Println(err)
+		}
 	}
 
 	for {
-		err := a.WaitForStart()
+		var err error
+		err = ServerErrorWrapper(func() error {
+			a.oppDesc, a.oppNick, err = a.client.GetOppDesc()
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err == nil {
 			break
 		}
-		if err != nil {
-			logger.Println(err)
-			if showErrors {
-				fmt.Println(err)
-			}
+		log.Println(err)
+		if showErrors {
+			fmt.Println(err)
 		}
 	}
-	err := ServerErrorWrapper(a.WaitForStart)
-	if err != nil {
-		return err
-	}
-
-	// for {
-	// 	var err error
-	// 	err := ServerErrorWrapper(func() error {
-	// 		a.oppDesc, a.oppNick, err = a.client.GetOppDesc()
-	// 	})g
-	// 	if err == nil {
-	// 		break
-	// 	}
-	// 	if err != nil {
-	// 		logger.Println(err)
-	// 		if showErrors {
-	// 			fmt.Println(err)
-	// 		}
-	// 	}
-	// }
 
 	for {
 		err := a.GetBoard()
 		if err == nil {
 			break
 		}
-		if err != nil {
-			logger.Println(err)
-			if showErrors {
-				fmt.Println(err)
-			}
+		log.Println(err)
+		if showErrors {
+			fmt.Println(err)
 		}
 	}
 	// SETUP CHANNELS

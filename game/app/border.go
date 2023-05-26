@@ -1,29 +1,15 @@
 package app
 
-import (
-	"context"
-)
-
 type point struct {
 	x, y int
 }
 
-func (a *App) MarkBorders(ctx context.Context, coordmap map[string]uint8, errorchan chan error) {
-	//var c context.Context
-	//if ctx.Value(fmt.Sprintf("%v-%v", coordmap["x"], coordmap["y"])) == nil {
-	//	c = context.WithValue(ctx, fmt.Sprintf("%v-%v", coordmap["x"], coordmap["y"]), []uint8{coordmap["x"], coordmap["y"]})
-	//	errorchan <- errors.New("dziala")
-	//} else {
-	//	return
-	//}
-
-	points := []point{}
+func (a *App) MarkBorders(coordmap map[string]uint8) {
+	var points []point
 	a.searchShips(int(coordmap["x"]), int(coordmap["y"]), &points)
-
 	for _, i := range points {
 		a.drawBorder(i)
 	}
-
 }
 
 func (a *App) searchShips(x, y int, points *[]point) {
@@ -40,7 +26,7 @@ func (a *App) searchShips(x, y int, points *[]point) {
 		}
 	}
 	*points = append(*points, point{x, y})
-	connections := []point{}
+	var connections []point
 
 	for _, v := range vec {
 		dx := x + v.x
@@ -53,18 +39,12 @@ func (a *App) searchShips(x, y int, points *[]point) {
 		}
 	}
 
-	// Run the method recursively on each linked element
 	for _, c := range connections {
 		a.searchShips(c.x, c.y, points)
 	}
 }
 
 func (a *App) drawBorder(p point) {
-	//
-	//    XXX
-	//    XOX
-	//    XXX
-	//
 	vec := []point{
 		{-1, 0},
 		{-1, -1},
@@ -85,7 +65,7 @@ func (a *App) drawBorder(p point) {
 		}
 
 		prev := a.enemyStates[dx][dy]
-		if !(prev == "Ship" || prev == "Hit" || prev == "Miss") { // don't overwrite already marked
+		if !(prev == "Ship" || prev == "Hit" || prev == "Miss") {
 			a.enemyStates[dx][dy] = "Miss"
 		}
 	}

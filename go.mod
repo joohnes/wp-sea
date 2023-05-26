@@ -1,4 +1,4 @@
-module game
+module github.com/joohnes/wp-sea
 
 go 1.20
 
