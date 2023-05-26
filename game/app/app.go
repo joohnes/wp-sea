@@ -94,6 +94,10 @@ func (a *App) Run() error {
 		if a.gameState != StateStart {
 			break
 		}
+		if err.Error() == "player not found" {
+			fmt.Println("Player not found. Perhaps you did not play any games?")
+			continue
+		}
 		fmt.Println("Server error occurred. Please try again")
 	}
 

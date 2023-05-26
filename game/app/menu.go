@@ -177,7 +177,7 @@ Start:
 			err := a.ChoosePlayer()
 			if err != nil {
 				log.Println(err)
-				fmt.Println("Error occured. Please try again")
+				fmt.Println("Error occurred. Please try again")
 				continue
 			}
 			break
