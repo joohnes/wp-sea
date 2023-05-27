@@ -1,6 +1,6 @@
 package helpers
 
-// Returns items in set A that are not in set B
+// Difference Returns items in set A that are not in set B
 func Difference(a, b []string) []string {
 	mb := make(map[string]struct{}, len(b))
 	for _, x := range b {
