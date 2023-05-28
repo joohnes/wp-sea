@@ -8,6 +8,8 @@ import (
 )
 
 func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <-chan string, errorchan <-chan error, timeLeftchan <-chan int) {
+
+	// SETUP
 	ui := gui.NewGUI(true)
 	Left := 1
 	Right := 50
@@ -15,6 +17,11 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	txt := gui.NewText(Left, 1, "Press Ctrl+C to exit", nil)
 	myBoard := gui.NewBoard(Left, 6, nil)
 	enemyBoard := gui.NewBoard(Right, 6, nil)
+	shipsleft := gui.NewText(
+		Right,
+		29,
+		fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.enemyShips[4], a.enemyShips[3], a.enemyShips[2], a.enemyShips[1]),
+		nil)
 
 	//TEXTS
 	timer := gui.NewText(Left, 2, "Timer: ", nil)
@@ -24,8 +31,9 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	oppDesc := gui.NewText(Left, 32, fmt.Sprintf("Opp's desc: %s", a.oppDesc), nil)
 
 	turnText := gui.NewText(Right, 4, "", nil)
-	chanText := gui.NewText(Left, 34, "test", nil)
-	errorText := gui.NewText(Left, 35, "error", nil)
+	chanText := gui.NewText(Left, 34, "", nil)
+	errorText := gui.NewText(Left, 35, "", nil)
+	errorText.SetBgColor(gui.Red)
 
 	shotsCounttxt := gui.NewText(Right, 1, "Shots: 0", nil)
 	shotsHittxt := gui.NewText(Right, 2, "Hit: 0", nil)
@@ -51,6 +59,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		shotsHittxt,
 		shotsCounttxt,
 		performancetxt,
+		shipsleft,
 	)
 
 	myBoard.SetStates(a.myStates)
@@ -69,6 +78,11 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 			select {
 			case text := <-textchan:
 				chanText.SetText(text)
+				if text == "You have won the game!" {
+					chanText.SetBgColor(gui.Green)
+				} else if text == "You have lost the game!" {
+					chanText.SetBgColor(gui.Red)
+				}
 
 			case err := <-errorchan:
 				errorText.SetText(err.Error())
@@ -101,7 +115,16 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 			if a.shotsCount != 0 {
 				performance = float64(a.shotsHit) / float64(a.shotsCount) * 100
 			}
-			performancetxt.SetText(fmt.Sprintf("Performance: %.2f%", performance))
+			performancetxt.SetText(fmt.Sprintf("Performance: %.2f%%", performance))
+			if performance > 60 {
+				performancetxt.SetBgColor(gui.Green)
+				//performancetxt.SetFgColor(gui.Black)
+			} else {
+				performancetxt.SetBgColor(gui.White)
+				//performancetxt.SetFgColor(gui.Black)
+			}
+
+			shipsleft.SetText(fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.enemyShips[4], a.enemyShips[3], a.enemyShips[2], a.enemyShips[1]))
 		}
 	}()
 

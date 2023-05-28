@@ -10,6 +10,7 @@ func (a *App) MarkBorders(coordmap map[string]uint8) {
 	for _, i := range points {
 		a.drawBorder(i)
 	}
+	a.enemyShips[len(points)] -= 1
 }
 
 func (a *App) searchShips(x, y int, points *[]point) {
