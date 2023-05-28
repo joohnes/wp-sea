@@ -25,7 +25,7 @@ func (p PairList) Less(i, j int) bool { return p[i].Values[1] < p[j].Values[1] }
 
 func (a *App) ShowStats() error {
 	var data map[string][]int
-	err := helpers.ServerErrorWrapper(func() error {
+	err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 		var err error
 		data, err = a.client.Stats()
 		if err != nil {
@@ -93,7 +93,7 @@ func PrintOptions(nick string) {
 
 func (a *App) ChoosePlayer() error {
 	var playerlist []map[string]string
-	err := helpers.ServerErrorWrapper(func() error {
+	err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 		var err error
 		playerlist, err = a.client.PlayerList()
 		if err != nil {
@@ -187,7 +187,7 @@ Start:
 	case "q", "Q":
 		os.Exit(0)
 	case "1": // play with bot
-		err := helpers.ServerErrorWrapper(func() error {
+		err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 			err := a.client.InitGame(nil, a.desc, a.nick, "", true)
 			if err != nil {
 				return err

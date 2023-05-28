@@ -112,7 +112,7 @@ func (a *App) Run() error {
 			fmt.Println("Server error occurred. Please try again")
 		}
 
-		err = helpers.ServerErrorWrapper(a.WaitForStart)
+		err = helpers.ServerErrorWrapper(ShowErrors, a.WaitForStart)
 		if err != nil {
 			log.Println(err)
 			if ShowErrors {
@@ -121,7 +121,7 @@ func (a *App) Run() error {
 		}
 
 		for {
-			err = helpers.ServerErrorWrapper(func() error {
+			err = helpers.ServerErrorWrapper(ShowErrors, func() error {
 				a.oppDesc, a.oppNick, err = a.client.GetOppDesc()
 				if err != nil {
 					return err
