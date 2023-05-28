@@ -21,7 +21,7 @@ func (a *App) WaitForStart() (err error) {
 		if err != nil {
 			return err
 		}
-		if status.Game_status == "game_in_progress" {
+		if status.GameStatus == "game_in_progress" {
 			a.actualStatus = *status
 			return nil
 		}
@@ -35,7 +35,7 @@ func (a *App) WaitForTurn() error {
 		if err != nil {
 			return err
 		}
-		if status.Should_fire {
+		if status.ShouldFire {
 			break
 		}
 		time.Sleep(waitDuration * time.Second)
@@ -48,7 +48,7 @@ func (a *App) CheckIfWon() bool {
 	if err != nil {
 		fmt.Println("Could not get status")
 	}
-	switch status.Last_game_status {
+	switch status.LastGameStatus {
 	case "win":
 		green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
 		fmt.Println(green("You have won the game!"))
@@ -146,8 +146,8 @@ func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textch
 				continue
 			}
 			a.actualStatus = *status
-			if status.Game_status == "ended" {
-				switch status.Last_game_status {
+			if status.GameStatus == "ended" {
+				switch status.LastGameStatus {
 				case "win":
 					textchan <- "You have won the game!"
 				case "lose":
@@ -169,8 +169,8 @@ func (a *App) OpponentShots(ctx context.Context, errorchan chan<- error) {
 	for {
 		select {
 		case <-oppShotTicker.C:
-			diff := helpers.Difference(a.actualStatus.Opp_shots, a.oppShots)
-			a.oppShots = a.actualStatus.Opp_shots
+			diff := helpers.Difference(a.actualStatus.OppShots, a.oppShots)
+			a.oppShots = a.actualStatus.OppShots
 			if len(diff) != 0 {
 				for _, v := range diff {
 					err := a.HitOrMiss(strings.ToLower(v))
@@ -182,7 +182,7 @@ func (a *App) OpponentShots(ctx context.Context, errorchan chan<- error) {
 			a.gameState = StatePlayerTurn
 			// additional check
 		case <-checkTicker.C:
-			for _, v := range a.actualStatus.Opp_shots {
+			for _, v := range a.actualStatus.OppShots {
 				err := a.HitOrMiss(strings.ToLower(v))
 				if err != nil {
 					errorchan <- err

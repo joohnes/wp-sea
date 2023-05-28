@@ -122,7 +122,7 @@ func (a *App) ChoosePlayer() error {
 				return err
 			}
 			go func() {
-				if a.actualStatus.Game_status == "waiting" {
+				if a.actualStatus.GameStatus == "waiting" {
 					_ = a.client.Refresh()
 					time.Sleep(10 * time.Second)
 				} else {

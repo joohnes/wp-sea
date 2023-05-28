@@ -7,5 +7,4 @@ const (
 	StateWaiting              = "Waiting"
 	StatePlayerTurn           = "PlayerTurn"
 	StateOppTurn              = "OppTurn"
-	StateEnded                = "Ended"
 )
