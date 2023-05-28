@@ -2,11 +2,6 @@
 
 Projekt na zaliczenie Akademii Programowania WP PJATK
 ## Rozpoczęcie
-### Instalacja
-Aby pobrać ten program należy wykonać komendę:
-```bash
-  git clone https://github.com/joohnes/wp-sea
-```
 ### Start
 
 Aby uruchomić klienta, należy wykonać podaną niżej komendę w głównym folderze:
@@ -18,16 +13,15 @@ Aby uruchomić klienta, należy wykonać podaną niżej komendę w głównym fol
 
 
 ## Jak zagrać w statki?
-Po włączeniu aplikacji, klient da nam komunikat o nawiązywaniu połączenia z serwerem.
-Po pomyślnym połączeniu pokaże nam się plansza razem z opisem naszej postaci i postaci przeciwnika
+Po włączeniu aplikacji, klient poprosi nas o podanie naszego pseudonimu i opisu. Następnie wyświetli się menu.\
+Opcję wybieramy wpisując odpowiedni numer i wciskając klawisz 'enter'.
 
-Następnie pokaże nam się komunikat o wpisaniu koordynatów naszego ataku.
-Koordynaty powinny składać się z dwóch lub trzech znaków, pierwszy to litera od A do J, a drugi (czasami i trzeci) to liczba od 1 do 10.
-W przypadku błędnego koordynatu program poinformuje o błędzie i poprosi jeszcze raz o wprowadzenie.
+### Walka
+Po wybraniu opcji z menu, klient połączy się z serwerem i przedstawi nam planszę.
+W lewym górnym rogu mamy komunikat jak opuścić rozgrywkę (jest to również poddanie partii), i ile czasu nam zostało.
+W prawym górnym rogu ukazują nam się nasze statystyki, ile razy strzeliliśmy, ile trafiliśmy, oraz procentowa celność.
 
-Przykładowe koordynaty:
-```terminal
-  A4, G10, J7, D10, F1
-```
+Koordynaty wybieramy poprzez kliknięcie w wybrane miejsce lewym przyciskiem myszy.
+- Klient nie pozwoli nam strzelić podczas trwania tury przeciwnika
+- Klient nie pozwoli nam strzelić w miejsce, do którego już strzelaliśmy
 
-Jeśli chcemy się poddać, zamiast koordynatów możemy wpisać `quit`, co spowoduje wysłanie do serwera komunikatu o poddaniu i zakończeniu działania programu.
