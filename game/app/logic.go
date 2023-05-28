@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	gui "github.com/grupawp/warships-gui/v2"
 	"github.com/joohnes/wp-sea/game/helpers"
 	"strings"
 	"time"
@@ -85,6 +86,7 @@ func (a *App) Shoot(coord string) error {
 		a.shotsHit += 1
 		a.MarkBorders(coordmap)
 	}
+	a.playerShots[coord] = result
 	return nil
 }
 
@@ -97,16 +99,23 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<-
 	for {
 		select {
 		case coord = <-coordchan:
-			_, err := helpers.NumericCords(coord)
-			if err != nil {
-				errorchan <- err
+			if a.gameState == StatePlayerTurn {
+				_, err := helpers.NumericCords(coord)
+				if err != nil {
+					errorchan <- err
+				}
+				if a.playerShots[coord] != "" {
+					textchan <- fmt.Sprintf("You have already shot at %s", coord)
+					break
+				}
+				err = a.Shoot(coord)
+				if err != nil {
+					errorchan <- err
+				}
+
+				resettime <- 1
+				textchan <- fmt.Sprintf("Shot at %s", coord)
 			}
-			err = a.Shoot(coord)
-			if err != nil {
-				errorchan <- err
-			}
-			resettime <- 1
-			textchan <- fmt.Sprintf("Shot at %s", coord)
 		case <-ctx.Done():
 			return
 		}
@@ -218,6 +227,10 @@ func (a *App) Timer(ctx context.Context, timeLeftchan, resetTimerchan chan int) 
 		select {
 		case <-second.C:
 			timeLeftchan <- timeLeft
+			if timeLeft == 0 {
+				second.Stop()
+				syncTimer.Stop()
+			}
 			timeLeft -= 1
 		case <-syncTimer.C:
 			timeLeft = a.actualStatus.Timer
@@ -248,4 +261,15 @@ func (a *App) PlaceShips(ctx context.Context, shipchannel chan string, errorchan
 			return
 		}
 	}
+}
+
+func (a *App) Reset() {
+	a.oppShots = []string{}
+	a.shotsCount = 0
+	a.shotsHit = 0
+	a.myStates = [10][10]gui.State{}
+	a.enemyStates = [10][10]gui.State{}
+	a.gameState = StateStart
+	a.enemyShips = map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
+	a.playerShots = map[string]string{}
 }

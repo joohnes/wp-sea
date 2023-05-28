@@ -118,10 +118,8 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 			performancetxt.SetText(fmt.Sprintf("Performance: %.2f%%", performance))
 			if performance > 60 {
 				performancetxt.SetBgColor(gui.Green)
-				//performancetxt.SetFgColor(gui.Black)
 			} else {
 				performancetxt.SetBgColor(gui.White)
-				//performancetxt.SetFgColor(gui.Black)
 			}
 
 			shipsleft.SetText(fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.enemyShips[4], a.enemyShips[3], a.enemyShips[2], a.enemyShips[1]))

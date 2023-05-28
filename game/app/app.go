@@ -40,6 +40,7 @@ type App struct {
 	gameState    Gamestate
 	actualStatus StatusResponse
 	enemyShips   map[int]int
+	playerShots  map[string]string
 }
 
 func New(c client) *App {
@@ -57,6 +58,7 @@ func New(c client) *App {
 		StateStart,
 		StatusResponse{},
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
+		map[string]string{},
 	}
 }
 

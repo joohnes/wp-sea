@@ -5,6 +5,7 @@ import (
 	"github.com/inancgumus/screen"
 	table "github.com/jedib0t/go-pretty/v6/table"
 	"github.com/joohnes/wp-sea/game/logger"
+	"os"
 	"sort"
 	"strconv"
 	"time"
@@ -85,6 +86,7 @@ func PrintOptions(nick string) {
 	t.AppendRow(table.Row{3, "Top 10 players"})
 	t.AppendRow(table.Row{4, "Your stats"})
 	t.AppendRow(table.Row{5, "Set up your ships"})
+	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
 }
 
@@ -181,6 +183,8 @@ Start:
 	}
 
 	switch answer {
+	case "q", "Q":
+		os.Exit(0)
 	case "1": // play with bot
 		err := ServerErrorWrapper(func() error {
 			err := a.client.InitGame(nil, a.desc, a.nick, "", true)
