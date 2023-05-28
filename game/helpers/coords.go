@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// change coords to numeric representation
+// NumericCords change coords to numeric representation
 func NumericCords(coord string) (map[string]uint8, error) {
 	if len(coord) != 2 && len(coord) != 3 {
 		return map[string]uint8{}, errors.New("param coord must be of length 2 or 3")

@@ -90,11 +90,7 @@ func (a *App) Shoot(coord string) error {
 	return nil
 }
 
-////////////////////////////////////////////
-// TUTAJ SIE KOŃCZĄ DOBRE FUNKCJE
-////////////////////////////////////////////
-
-func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<- string, errorchan chan error, resettime chan int) {
+func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<- string, errorchan chan error, resetTime chan int) {
 	var coord string
 	for {
 		select {
@@ -113,7 +109,7 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<-
 					errorchan <- err
 				}
 
-				resettime <- 1
+				resetTime <- 1
 				textchan <- fmt.Sprintf("Shot at %s", coord)
 			}
 		case <-ctx.Done():
@@ -137,11 +133,6 @@ func (a *App) HitOrMiss(coord string) error {
 	default:
 		a.myStates[coordmap["x"]][coordmap["y"]] = "Miss"
 	}
-	//for i, x := range a.myStates {
-	//	for j, y := range x {
-	//		fmt.Println(i, j, y)
-	//	}
-	//}
 	return nil
 }
 

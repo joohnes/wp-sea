@@ -67,8 +67,9 @@ func (a *App) Run() error {
 	log := logger.GetLoggerInstance()
 	screen.Clear()
 	screen.MoveTopLeft()
+	var err error
 	for {
-		err := a.getName()
+		a.nick, err = helpers.GetName()
 		if err == nil {
 			break
 		}
@@ -79,7 +80,7 @@ func (a *App) Run() error {
 	}
 
 	for {
-		err := a.getDesc()
+		a.desc, err = helpers.GetDesc()
 		if err == nil {
 			break
 		}

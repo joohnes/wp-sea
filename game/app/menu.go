@@ -111,7 +111,7 @@ func (a *App) ChoosePlayer() error {
 			fmt.Println(i, x["nick"])
 		}
 		fmt.Println("Do you want to wait for another player? y/n")
-		answer, err := a.getAnswer()
+		answer, err := helpers.GetAnswer()
 		if err != nil {
 			return err
 		}
@@ -133,7 +133,7 @@ func (a *App) ChoosePlayer() error {
 		}
 
 		fmt.Println("Choose a player number: ")
-		answer, err = a.getAnswer()
+		answer, err = helpers.GetAnswer()
 		if err != nil {
 			return err
 		}
@@ -150,7 +150,7 @@ func (a *App) ChoosePlayer() error {
 	} else {
 		fmt.Println("No players waiting at the moment")
 		fmt.Println("Do you want to wait for another player? y/n")
-		answer, err := a.getAnswer()
+		answer, err := helpers.GetAnswer()
 		if err != nil {
 			return err
 		}
@@ -177,7 +177,7 @@ Start:
 	screen.Clear()
 	screen.MoveTopLeft()
 	PrintOptions(a.nick)
-	answer, err := a.getAnswer()
+	answer, err := helpers.GetAnswer()
 	if err != nil {
 		log.Println(err)
 		goto Start
