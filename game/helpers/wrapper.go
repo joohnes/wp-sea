@@ -1,8 +1,9 @@
-package app
+package helpers
 
 import (
 	"errors"
 	"fmt"
+	"github.com/joohnes/wp-sea/game/app"
 	"github.com/joohnes/wp-sea/game/logger"
 	"time"
 )
@@ -16,10 +17,10 @@ func ServerErrorWrapper(f func() error) error {
 		if err == nil {
 			return nil
 		}
-		if err != nil && showErrors {
-			fmt.Printf("#%d - Server error occured. Please wait\n", x+1)
+		if app.ShowErrors {
+			fmt.Printf("#%d - Server error occurred. Please wait\n", x+1)
 		}
-		log.Printf("#%d - Server error occured. Please wait\n", x+1)
+		log.Printf("#%d - Server error occurred. Please wait\n", x+1)
 		time.Sleep(1 * time.Second)
 	}
 	return errors.New("max connection tries reached")

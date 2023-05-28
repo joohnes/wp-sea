@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/inancgumus/screen"
 	table "github.com/jedib0t/go-pretty/v6/table"
+	"github.com/joohnes/wp-sea/game/helpers"
 	"github.com/joohnes/wp-sea/game/logger"
 	"os"
 	"sort"
@@ -24,7 +25,7 @@ func (p PairList) Less(i, j int) bool { return p[i].Values[1] < p[j].Values[1] }
 
 func (a *App) ShowStats() error {
 	var data map[string][]int
-	err := ServerErrorWrapper(func() error {
+	err := helpers.ServerErrorWrapper(func() error {
 		var err error
 		data, err = a.client.Stats()
 		if err != nil {
@@ -92,7 +93,7 @@ func PrintOptions(nick string) {
 
 func (a *App) ChoosePlayer() error {
 	var playerlist []map[string]string
-	err := ServerErrorWrapper(func() error {
+	err := helpers.ServerErrorWrapper(func() error {
 		var err error
 		playerlist, err = a.client.PlayerList()
 		if err != nil {
@@ -186,7 +187,7 @@ Start:
 	case "q", "Q":
 		os.Exit(0)
 	case "1": // play with bot
-		err := ServerErrorWrapper(func() error {
+		err := helpers.ServerErrorWrapper(func() error {
 			err := a.client.InitGame(nil, a.desc, a.nick, "", true)
 			if err != nil {
 				return err

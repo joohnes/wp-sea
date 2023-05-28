@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/inancgumus/screen"
+	"github.com/joohnes/wp-sea/game/helpers"
 	"github.com/joohnes/wp-sea/game/logger"
 	"time"
 
 	gui "github.com/grupawp/warships-gui/v2"
 )
 
-const showErrors = false
+const ShowErrors = false
 
 type client interface {
 	InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error
@@ -72,7 +73,7 @@ func (a *App) Run() error {
 			break
 		}
 		log.Println(err)
-		if showErrors {
+		if ShowErrors {
 			fmt.Println(err)
 		}
 	}
@@ -83,7 +84,7 @@ func (a *App) Run() error {
 			break
 		}
 		log.Println(err)
-		if showErrors {
+		if ShowErrors {
 			fmt.Println(err)
 		}
 	}
@@ -94,7 +95,7 @@ func (a *App) Run() error {
 				break
 			}
 			log.Println(err)
-			if showErrors {
+			if ShowErrors {
 				fmt.Println(err)
 			}
 
@@ -110,17 +111,17 @@ func (a *App) Run() error {
 			fmt.Println("Server error occurred. Please try again")
 		}
 
-		err := ServerErrorWrapper(a.WaitForStart)
+		err := helpers.ServerErrorWrapper(a.WaitForStart)
 		if err != nil {
 			log.Println(err)
-			if showErrors {
+			if ShowErrors {
 				fmt.Println(err)
 			}
 		}
 
 		for {
 			var err error
-			err = ServerErrorWrapper(func() error {
+			err = helpers.ServerErrorWrapper(func() error {
 				a.oppDesc, a.oppNick, err = a.client.GetOppDesc()
 				if err != nil {
 					return err
@@ -131,7 +132,7 @@ func (a *App) Run() error {
 				break
 			}
 			log.Println(err)
-			if showErrors {
+			if ShowErrors {
 				fmt.Println(err)
 			}
 		}
@@ -142,7 +143,7 @@ func (a *App) Run() error {
 				break
 			}
 			log.Println(err)
-			if showErrors {
+			if ShowErrors {
 				fmt.Println(err)
 			}
 		}
