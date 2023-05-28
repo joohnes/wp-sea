@@ -39,6 +39,7 @@ type App struct {
 	enemyStates  [10][10]gui.State
 	gameState    Gamestate
 	actualStatus StatusResponse
+	enemyShips   map[int]int
 }
 
 func New(c client) *App {
@@ -55,6 +56,7 @@ func New(c client) *App {
 		[10][10]gui.State{},
 		StateStart,
 		StatusResponse{},
+		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 	}
 }
 
@@ -83,85 +85,85 @@ func (a *App) Run() error {
 			fmt.Println(err)
 		}
 	}
-
 	for {
-		err := a.ChooseOption()
-		if err == nil {
-			break
-		}
-		log.Println(err)
-		if showErrors {
-			fmt.Println(err)
-		}
-
-		if a.gameState != StateStart {
-			break
-		}
-		if err.Error() == "player not found" {
-			fmt.Println("Player not found. Perhaps you did not play any games?")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		time.Sleep(2 * time.Second)
-		fmt.Println("Server error occurred. Please try again")
-	}
-
-	err := ServerErrorWrapper(a.WaitForStart)
-	if err != nil {
-		log.Println(err)
-		if showErrors {
-			fmt.Println(err)
-		}
-	}
-
-	for {
-		var err error
-		err = ServerErrorWrapper(func() error {
-			a.oppDesc, a.oppNick, err = a.client.GetOppDesc()
-			if err != nil {
-				return err
+		for {
+			err := a.ChooseOption()
+			if err == nil {
+				break
 			}
-			return nil
-		})
-		if err == nil {
-			break
+			log.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
+
+			if a.gameState != StateStart {
+				break
+			}
+			if err.Error() == "player not found" {
+				fmt.Println("Player not found. Perhaps you did not play any games?")
+				time.Sleep(2 * time.Second)
+				continue
+			}
+			time.Sleep(2 * time.Second)
+			fmt.Println("Server error occurred. Please try again")
 		}
-		log.Println(err)
-		if showErrors {
-			fmt.Println(err)
+
+		err := ServerErrorWrapper(a.WaitForStart)
+		if err != nil {
+			log.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
 		}
+
+		for {
+			var err error
+			err = ServerErrorWrapper(func() error {
+				a.oppDesc, a.oppNick, err = a.client.GetOppDesc()
+				if err != nil {
+					return err
+				}
+				return nil
+			})
+			if err == nil {
+				break
+			}
+			log.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
+		}
+
+		for {
+			err := a.GetBoard()
+			if err == nil {
+				break
+			}
+			log.Println(err)
+			if showErrors {
+				fmt.Println(err)
+			}
+		}
+		// SETUP CHANNELS
+		coordchan := make(chan string)
+		textchan := make(chan string)
+		errorchan := make(chan error)
+		timeLeftchan := make(chan int)
+		resetTimerchan := make(chan int)
+		//
+
+		// SETUP CONTEXTS
+		ctx, cancel := context.WithCancel(context.Background())
+		//
+
+		// SETUP GOROUTINES
+		go a.CheckStatus(ctx, cancel, textchan)
+		go a.OpponentShots(ctx, errorchan)
+		go a.Play(ctx, coordchan, textchan, errorchan, resetTimerchan)
+		go a.Timer(ctx, timeLeftchan, resetTimerchan)
+		//
+
+		// SHOW BOARD
+		a.ShowBoard(ctx, coordchan, textchan, errorchan, timeLeftchan)
 	}
-
-	for {
-		err := a.GetBoard()
-		if err == nil {
-			break
-		}
-		log.Println(err)
-		if showErrors {
-			fmt.Println(err)
-		}
-	}
-	// SETUP CHANNELS
-	coordchan := make(chan string)
-	textchan := make(chan string)
-	errorchan := make(chan error)
-	timeLeftchan := make(chan int)
-	resetTimerchan := make(chan int)
-	//
-
-	// SETUP CONTEXTS
-	ctx, cancel := context.WithCancel(context.Background())
-	//
-
-	// SETUP GOROUTINES
-	go a.CheckStatus(ctx, cancel, textchan)
-	go a.OpponentShots(ctx, errorchan)
-	go a.Play(ctx, coordchan, textchan, errorchan, resetTimerchan)
-	go a.Timer(ctx, timeLeftchan, resetTimerchan)
-	//
-
-	// SHOW BOARD
-	a.ShowBoard(ctx, coordchan, textchan, errorchan, timeLeftchan)
-	return nil
 }
