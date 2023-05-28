@@ -1,12 +1,12 @@
 package helpers
 
 // Difference Returns items in set A that are not in set B
-func Difference(a, b []string) []string {
-	mb := make(map[string]struct{}, len(b))
+func Difference[T comparable](a, b []T) []T {
+	mb := make(map[T]struct{}, len(b))
 	for _, x := range b {
 		mb[x] = struct{}{}
 	}
-	var diff []string
+	var diff []T
 	for _, x := range a {
 		if _, found := mb[x]; !found {
 			diff = append(diff, x)
