@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"github.com/inancgumus/screen"
 	table "github.com/jedib0t/go-pretty/v6/table"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -81,7 +83,6 @@ func PrintOptions(nick string) {
 	t := table.NewWriter()
 	t.SetTitle(fmt.Sprintf("Nick: %s", nick))
 	t.AppendHeader(table.Row{"#", "Choose an option"})
-
 	t.AppendRow(table.Row{1, "Play with WPBot"})
 	t.AppendRow(table.Row{2, "Play with another player"})
 	t.AppendRow(table.Row{3, "Top 10 players"})
@@ -93,6 +94,7 @@ func PrintOptions(nick string) {
 
 func (a *App) ChoosePlayer() error {
 	var playerlist []map[string]string
+	log := logger.GetLoggerInstance()
 	err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 		var err error
 		playerlist, err = a.client.PlayerList()
@@ -106,69 +108,120 @@ func (a *App) ChoosePlayer() error {
 	}
 	if len(playerlist) != 0 {
 
-		fmt.Println("Waiting players: ")
-		for i, x := range playerlist {
-			fmt.Println(i, x["nick"])
+		//fmt.Println("Waiting players: ")
+		//for i, x := range playerlist {
+		//	fmt.Println(i, x["nick"])
+		//}
+		t := table.NewWriter()
+		t.SetTitle("Waiting players")
+
+		t.AppendHeader(table.Row{"#", "Nick"})
+		for counter, x := range playerlist {
+			t.AppendRow(table.Row{counter + 1, x})
 		}
-		fmt.Println("Do you want to wait for another player? y/n")
+		t.AppendFooter(table.Row{"", fmt.Sprintf("Choose a player (1-%d)\nIf you wish to wait, type 'wait'\nTo go back, type 'back'", len(playerlist)+1)})
+		fmt.Println(t.Render())
+
+	Again:
 		answer, err := helpers.GetAnswer()
 		if err != nil {
 			return err
 		}
-		if answer == "y" {
+		if strings.ToLower(answer) == "wait" {
 			fmt.Println("Waiting...")
 			err = a.client.InitGame(nil, a.desc, a.nick, "", false)
 			if err != nil {
 				return err
 			}
+			a.gameState = StateWaiting
+
 			go func() {
-				if a.actualStatus.GameStatus == "waiting" {
-					_ = a.client.Refresh()
-					time.Sleep(10 * time.Second)
-				} else {
-					return
+				for {
+					if a.gameState == StateWaiting {
+						err := a.client.Refresh()
+						if err != nil {
+							time.Sleep(10 * time.Second)
+						}
+					} else {
+						return
+					}
 				}
 			}()
-			return nil
-		}
 
-		fmt.Println("Choose a player number: ")
-		answer, err = helpers.GetAnswer()
-		if err != nil {
-			return err
-		}
-		i, err := strconv.Atoi(answer)
-		if err != nil {
-			return err
-		}
-		time.Sleep(time.Second * 1)
-		fmt.Printf("'%s'", playerlist[i]["nick"])
-		err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
-		if err != nil {
-			return err
-		}
-	} else {
-		fmt.Println("No players waiting at the moment")
-		fmt.Println("Do you want to wait for another player? y/n")
-		answer, err := helpers.GetAnswer()
-		if err != nil {
-			return err
-		}
-		switch answer {
-		case "y":
-			err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+			return nil
+		} else if strings.ToLower(answer) == "back" {
+			return errors.New("back")
+		} else {
+			i, err := strconv.Atoi(answer)
+			if err != nil {
+				log.Printf("Couldn't convert %s to a number\n", answer)
+				fmt.Println("Please enter a valid number (1-", len(playerlist)+1, ")")
+				goto Again
+			}
+			if i < 1 || i > len(playerlist)+1 {
+				fmt.Println("Please enter a valid number (1-", len(playerlist)+1, ")")
+				goto Again
+			}
+			err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i+1]["nick"], false)
 			if err != nil {
 				return err
 			}
 			return nil
-		case "n":
+		}
+
+		//fmt.Println("Choose a player number: ")
+		//answer, err = helpers.GetAnswer()
+		//if err != nil {
+		//	return err
+		//}
+		//i, err := strconv.Atoi(answer)
+		//if err != nil {
+		//	return err
+		//}
+		//time.Sleep(time.Second * 1)
+		//fmt.Printf("'%s'", playerlist[i]["nick"])
+		//err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i]["nick"], false)
+		//if err != nil {
+		//	return err
+		//}
+	} else {
+		fmt.Println("No players waiting at the moment")
+		fmt.Println("Do you want to wait for another player? y/n")
+	NoPlayersAgain:
+		answer, err := helpers.GetAnswer()
+		if err != nil {
+			return err
+		}
+		switch strings.ToLower(answer) {
+		case "y":
+			fmt.Println("Waiting...")
+			err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+			if err != nil {
+				return err
+			}
+			a.gameState = StateWaiting
+
+			go func() {
+				for {
+					if a.gameState == StateWaiting {
+						err := a.client.Refresh()
+						if err != nil {
+							time.Sleep(10 * time.Second)
+						}
+					} else {
+						return
+					}
+				}
+			}()
+
 			return nil
+		case "n":
+			return errors.New("back")
 		default:
-			fmt.Println("Please enter a number from the list!")
+			fmt.Println("Please type 'y' or 'n'")
+			goto NoPlayersAgain
 		}
 	}
-	a.gameState = StateWaiting
-	return nil
 }
 
 func (a *App) ChooseOption() error {
@@ -202,6 +255,9 @@ Start:
 	case "2": // play with another player
 		for {
 			err := a.ChoosePlayer()
+			if err.Error() == "back" {
+				goto Start
+			}
 			if err != nil {
 				log.Println(err)
 				fmt.Println("Error occurred. Please try again")
