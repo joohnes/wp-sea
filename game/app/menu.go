@@ -44,10 +44,6 @@ func (a *App) ShowStats() error {
 	}
 	sort.Sort(sort.Reverse(p))
 
-	for _, k := range p {
-		fmt.Printf("%v\t%v\n", k.Key, k.Values[1])
-	}
-
 	t := table.NewWriter()
 	t.SetTitle("Stats")
 
