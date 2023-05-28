@@ -147,6 +147,7 @@ func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textch
 			}
 			a.actualStatus = *status
 			if status.GameStatus == "ended" {
+				a.gameState = StateEnded
 				switch status.LastGameStatus {
 				case "win":
 					textchan <- "You have won the game!"

@@ -91,7 +91,7 @@ func (a *App) Run() error {
 	}
 	for {
 		for {
-			err := a.ChooseOption()
+			err = a.ChooseOption()
 			if err == nil {
 				break
 			}
@@ -112,7 +112,7 @@ func (a *App) Run() error {
 			fmt.Println("Server error occurred. Please try again")
 		}
 
-		err := helpers.ServerErrorWrapper(a.WaitForStart)
+		err = helpers.ServerErrorWrapper(a.WaitForStart)
 		if err != nil {
 			log.Println(err)
 			if ShowErrors {
@@ -121,7 +121,6 @@ func (a *App) Run() error {
 		}
 
 		for {
-			var err error
 			err = helpers.ServerErrorWrapper(func() error {
 				a.oppDesc, a.oppNick, err = a.client.GetOppDesc()
 				if err != nil {
@@ -139,7 +138,7 @@ func (a *App) Run() error {
 		}
 
 		for {
-			err := a.GetBoard()
+			err = a.GetBoard()
 			if err == nil {
 				break
 			}
@@ -169,5 +168,17 @@ func (a *App) Run() error {
 
 		// SHOW BOARD
 		a.ShowBoard(ctx, coordchan, textchan, errorchan, timeLeftchan)
+		if a.gameState != StateEnded {
+			for {
+				err = a.client.Resign()
+				if err == nil {
+					break
+				}
+				log.Println(err)
+				if ShowErrors {
+					fmt.Println(err)
+				}
+			}
+		}
 	}
 }
