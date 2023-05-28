@@ -19,7 +19,7 @@ func ServerErrorWrapper(showErrors bool, f func() error) error {
 		if showErrors {
 			fmt.Printf("#%d - Server error occurred. Please wait\n", x+1)
 		}
-		log.Printf("#%d - Server error occurred. Please wait\n", x+1)
+		log.Printf("#%d - Server error %s\n", x+1, err.Error())
 		time.Sleep(1 * time.Second)
 	}
 	return errors.New("max connection tries reached")

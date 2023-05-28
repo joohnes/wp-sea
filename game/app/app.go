@@ -11,7 +11,7 @@ import (
 	gui "github.com/grupawp/warships-gui/v2"
 )
 
-const ShowErrors = false
+const ShowErrors = true
 
 type client interface {
 	InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error
@@ -109,7 +109,7 @@ func (a *App) Run() error {
 				continue
 			}
 			time.Sleep(2 * time.Second)
-			fmt.Println("Server error occurred. Please try again")
+			fmt.Println("Server error occurred1. Please try again")
 		}
 
 		err = helpers.ServerErrorWrapper(ShowErrors, a.WaitForStart)

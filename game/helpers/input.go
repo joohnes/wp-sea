@@ -20,7 +20,7 @@ func GetAnswer() (string, error) {
 	if len(answer) == 0 {
 		return "", nil
 	}
-	return strings.ToLower(string(answer[0])), nil
+	return strings.ToLower(answer), nil
 }
 
 func GetName() (string, error) {

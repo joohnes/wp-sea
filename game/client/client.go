@@ -20,6 +20,7 @@ const (
 	urlOppDesc   = "/api/game/desc"
 	urlRefresh   = "/api/game/refresh"
 	urlList      = "/api/list"
+	urlLobby     = "/api/lobby"
 	urlStats     = "/api/stats"
 	tokenHeader  = "X-Auth-Token"
 	errAuthToken = "no auth token"
@@ -57,7 +58,7 @@ func (c *Client) PrintToken() {
 }
 
 func (c *Client) InitGame(coords []string, desc, nick, targetOpponent string, wpbot bool) error {
-	fmt.Println("Connecting to server...")
+	//fmt.Println("Connecting to server...")
 	params := map[string]any{
 		"coords":      coords,
 		"desc":        desc,
@@ -81,7 +82,7 @@ func (c *Client) InitGame(coords []string, desc, nick, targetOpponent string, wp
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return errors.New("could not init game")
+		return errors.New(fmt.Sprintf("could not init game, %d", resp.StatusCode))
 	}
 
 	c.token = resp.Header.Get(tokenHeader)
@@ -281,7 +282,7 @@ func (c *Client) Refresh() error {
 }
 
 func (c *Client) PlayerList() ([]map[string]string, error) {
-	urlPath, err := url.JoinPath(c.serverAddr, urlList)
+	urlPath, err := url.JoinPath(c.serverAddr, urlLobby)
 	if err != nil {
 		return []map[string]string{}, err
 	}

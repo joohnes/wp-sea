@@ -15,7 +15,7 @@ const (
 	waitDuration = 3
 )
 
-func (a *App) WaitForStart() (err error) {
+func (a *App) WaitForStart() error {
 	for {
 		status, err := a.client.Status()
 		if err != nil {
