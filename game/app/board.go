@@ -37,7 +37,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 
 	shotsCounttxt := gui.NewText(Right, 1, "Shots: 0", nil)
 	shotsHittxt := gui.NewText(Right, 2, "Hit: 0", nil)
-	performancetxt := gui.NewText(Right, 3, "Performance: %", nil)
+	accuracytxt := gui.NewText(Right, 3, "Accuracy: %", nil)
 
 	DrawList := func(a ...gui.Drawable) {
 		for _, d := range a {
@@ -58,7 +58,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		oppDesc,
 		shotsHittxt,
 		shotsCounttxt,
-		performancetxt,
+		accuracytxt,
 		shipsleft,
 	)
 
@@ -97,9 +97,10 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 			switch a.gameState {
 			case StatePlayerTurn:
 				turnText.SetText("Your Turn!")
+				turnText.SetBgColor(gui.Green)
 			case StateOppTurn:
 				turnText.SetText("Enemy's turn!")
-
+				turnText.SetBgColor(gui.Red)
 			}
 		}
 	}()
@@ -111,15 +112,15 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 			enemyBoard.SetStates(a.enemyStates)
 			shotsCounttxt.SetText(fmt.Sprintf("Shots: %d", a.shotsCount))
 			shotsHittxt.SetText(fmt.Sprintf("Hits: %d", a.shotsHit))
-			var performance float64
+			var accuracy float64
 			if a.shotsCount != 0 {
-				performance = float64(a.shotsHit) / float64(a.shotsCount) * 100
+				accuracy = float64(a.shotsHit) / float64(a.shotsCount) * 100
 			}
-			performancetxt.SetText(fmt.Sprintf("Performance: %.2f%%", performance))
-			if performance > 60 {
-				performancetxt.SetBgColor(gui.Green)
+			accuracytxt.SetText(fmt.Sprintf("Accuracy: %.2f%%", accuracy))
+			if accuracy > 60 {
+				accuracytxt.SetBgColor(gui.Green)
 			} else {
-				performancetxt.SetBgColor(gui.White)
+				accuracytxt.SetBgColor(gui.White)
 			}
 
 			shipsleft.SetText(fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.enemyShips[4], a.enemyShips[3], a.enemyShips[2], a.enemyShips[1]))
