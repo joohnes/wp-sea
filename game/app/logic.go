@@ -282,3 +282,15 @@ func (a *App) Reset() {
 	a.enemyShips = map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
 	a.playerShots = map[string]string{}
 }
+
+// TranslateMap Translates [][]gui.State to coord list, so we can send it in a request
+func (a *App) TranslateMap() (coords []string) {
+	for i, x := range a.playerStates {
+		for j, y := range x {
+			if y != "" {
+				coords = append(coords, helpers.AlphabeticCoords(i, j))
+			}
+		}
+	}
+	return
+}

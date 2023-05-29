@@ -224,7 +224,7 @@ Start:
 		os.Exit(0)
 	case "1": // play with bot
 		err := helpers.ServerErrorWrapper(ShowErrors, func() error {
-			err := a.client.InitGame(nil, a.desc, a.nick, "", true)
+			err := a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", true)
 			if err != nil {
 				return err
 			}

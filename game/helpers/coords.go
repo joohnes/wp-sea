@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -28,4 +29,9 @@ func NumericCords(coord string) (map[string]uint8, error) {
 	translatedCoords["y"] = uint8(numbers) - 1
 
 	return translatedCoords, nil
+}
+
+func AlphabeticCoords(x, y int) string {
+	letters := "abcdefghij"
+	return string(letters[x]) + fmt.Sprint(y+1)
 }
