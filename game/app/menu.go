@@ -40,7 +40,7 @@ func (a *App) ShowStats() error {
 		i++
 	}
 
-	sort.Sort((sort.Reverse(p)))
+	sort.Sort(sort.Reverse(p))
 
 	t := table.NewWriter()
 	t.SetTitle("Stats")
@@ -131,7 +131,7 @@ func (a *App) ChoosePlayer() error {
 		fmt.Println(t.Render())
 
 	Again:
-		answer, err := helpers.GetAnswer()
+		answer, err := helpers.GetAnswer(false)
 		if err != nil {
 			return err
 		}
@@ -178,17 +178,13 @@ func (a *App) ChoosePlayer() error {
 		fmt.Println("No players waiting at the moment")
 		fmt.Println("Do you want to wait for another player? y/n")
 	NoPlayersAgain:
-		answer, err := helpers.GetAnswer()
+		answer, err := helpers.GetAnswer(false)
 		if err != nil {
 			return err
 		}
 		switch strings.ToLower(answer) {
 		case "y", "yes":
 			fmt.Println("Waiting...")
-			// err = a.client.InitGame(nil, a.desc, a.nick, "", false)
-			// if err != nil {
-			// 	return err
-			// }
 			err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 				err := a.client.InitGame(nil, a.desc, a.nick, "", false)
 				if err != nil {
@@ -208,7 +204,7 @@ func (a *App) ChoosePlayer() error {
 
 			return nil
 		case "n", "no":
-			return errors.New("back")
+			return ErrBack
 		default:
 			fmt.Println("Please type 'y' or 'n'")
 			goto NoPlayersAgain
@@ -222,7 +218,7 @@ Start:
 	screen.Clear()
 	screen.MoveTopLeft()
 	PrintOptions(a.nick)
-	answer, err := helpers.GetAnswer()
+	answer, err := helpers.GetAnswer(false)
 	if err != nil {
 		log.Println(err)
 		goto Start
@@ -277,7 +273,7 @@ Start:
 
 	case "5":
 		fmt.Print("Enter name: ")
-		nick, err := helpers.GetAnswer()
+		nick, err := helpers.GetAnswer(true)
 		if err != nil {
 			log.Println(err)
 			fmt.Println(err)
@@ -294,6 +290,7 @@ Start:
 		goto Start
 	default:
 		fmt.Println("Please enter a valid number!")
+		time.Sleep(time.Second)
 		goto Start
 	}
 	return nil

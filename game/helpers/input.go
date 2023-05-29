@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func GetAnswer() (string, error) {
+func GetAnswer(caseSensitive bool) (string, error) {
 	var answer string
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -19,6 +19,9 @@ func GetAnswer() (string, error) {
 	}
 	if len(answer) == 0 {
 		return "", nil
+	}
+	if caseSensitive {
+		return answer, nil
 	}
 	return strings.ToLower(answer), nil
 }
