@@ -38,6 +38,7 @@ type App struct {
 	shotsCount   int
 	shotsHit     int
 	myStates     [10][10]gui.State
+	playerStates [10][10]gui.State
 	enemyStates  [10][10]gui.State
 	gameState    Gamestate
 	actualStatus StatusResponse
@@ -55,6 +56,7 @@ func New(c client) *App {
 		"",
 		0,
 		0,
+		[10][10]gui.State{},
 		[10][10]gui.State{},
 		[10][10]gui.State{},
 		StateStart,
@@ -190,5 +192,6 @@ func (a *App) Run() error {
 				}
 			}
 		}
+		a.Reset()
 	}
 }

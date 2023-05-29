@@ -8,7 +8,6 @@ import (
 
 	gui "github.com/grupawp/warships-gui/v2"
 	"github.com/joohnes/wp-sea/game/helpers"
-	"github.com/joohnes/wp-sea/game/logger"
 
 	"github.com/fatih/color"
 )
@@ -142,7 +141,6 @@ func (a *App) HitOrMiss(coord string) error {
 
 func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textchan chan<- string) {
 	statusTicker := time.NewTicker(2 * time.Second)
-	log := logger.GetLoggerInstance()
 	for {
 		select {
 		case <-statusTicker.C:
@@ -151,7 +149,6 @@ func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textch
 				continue
 			}
 			a.actualStatus = *status
-			log.Println(status.GameStatus)
 			if status.GameStatus == "ended" {
 				a.gameState = StateEnded
 				switch status.LastGameStatus {
