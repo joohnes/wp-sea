@@ -294,3 +294,14 @@ func (a *App) TranslateMap() (coords []string) {
 	}
 	return
 }
+
+func (a *App) CheckIfChangedMap() bool {
+	for _, x := range a.playerStates {
+		for _, y := range x {
+			if y != "Ship" {
+				return true
+			}
+		}
+	}
+	return false
+}

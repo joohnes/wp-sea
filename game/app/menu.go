@@ -137,7 +137,12 @@ func (a *App) ChoosePlayer() error {
 		}
 		if strings.ToLower(answer) == "wait" {
 			fmt.Println("Waiting...")
-			err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+			var err error
+			if a.CheckIfChangedMap() {
+				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", false)
+			} else {
+				err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+			}
 			if err != nil {
 				return err
 			}
@@ -159,7 +164,11 @@ func (a *App) ChoosePlayer() error {
 				fmt.Println("Please enter a valid number (1-", len(playerlist), ")")
 				goto Again
 			}
-			err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i-1]["nick"], false)
+			if a.CheckIfChangedMap() {
+				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, playerlist[i-1]["nick"], false)
+			} else {
+				err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i-1]["nick"], false)
+			}
 			if err != nil {
 				return err
 			}
@@ -224,7 +233,12 @@ Start:
 		os.Exit(0)
 	case "1": // play with bot
 		err := helpers.ServerErrorWrapper(ShowErrors, func() error {
-			err := a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", true)
+			var err error
+			if a.CheckIfChangedMap() {
+				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", true)
+			} else {
+				err = a.client.InitGame(nil, a.desc, a.nick, "", true)
+			}
 			if err != nil {
 				return err
 			}
