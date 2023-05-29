@@ -140,7 +140,7 @@ func (a *App) HitOrMiss(coord string) error {
 }
 
 func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textchan chan<- string) {
-	statusTicker := time.NewTicker(2 * time.Second)
+	statusTicker := time.NewTicker(500 * time.Millisecond)
 	for {
 		select {
 		case <-statusTicker.C:
@@ -240,23 +240,36 @@ func (a *App) Timer(ctx context.Context, timeLeftchan, resetTimerchan chan int) 
 	}
 }
 
-func (a *App) PlaceShips(ctx context.Context, shipchannel chan string, errorchan chan error) {
+func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipchannel chan string, errorchan chan error) {
 	for {
 		select {
 		case coord := <-shipchannel:
 			coords, err := helpers.NumericCords(coord)
 			if err != nil {
 				errorchan <- err
+				break
 			}
-			if a.myStates[coords["x"]][coords["y"]] == "Empty" {
-				a.myStates[coords["x"]][coords["y"]] = "Ship"
-			} else if a.myStates[coords["x"]][coords["y"]] == "Ship" {
-				a.myStates[coords["x"]][coords["y"]] = "Empty"
+			err = a.ValidateShipPlacement(coords, cancel)
+			if err != nil {
+				errorchan <- err
 			}
+
 		case <-ctx.Done():
 			return
 		}
 	}
+}
+
+func (a *App) ValidateShipPlacement(coords map[string]uint8, cancel context.CancelFunc) error {
+
+	if a.playerStates[coords["x"]][coords["y"]] == "Ship" {
+		a.playerStates[coords["x"]][coords["y"]] = ""
+	} else if a.playerStates[coords["x"]][coords["y"]] == "" {
+
+		a.playerStates[coords["x"]][coords["y"]] = "Ship"
+	}
+
+	return nil
 }
 
 func (a *App) Reset() {

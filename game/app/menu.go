@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -206,7 +207,7 @@ func (a *App) ChoosePlayer() error {
 	}
 }
 
-func (a *App) ChooseOption() error {
+func (a *App) ChooseOption(ctx context.Context, cancel context.CancelFunc, shipchannel chan string, errchan chan error) error {
 	log := logger.GetLoggerInstance()
 Start:
 	screen.Clear()
@@ -274,6 +275,9 @@ Start:
 		}
 		goto Start
 	case "6": //set up ships
+		go a.PlaceShips(ctx, cancel, shipchannel, errchan)
+		a.SetUpShips(ctx, shipchannel, errchan)
+		goto Start
 	default:
 		fmt.Println("Please enter a valid number!")
 		goto Start

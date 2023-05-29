@@ -67,7 +67,24 @@ func New(c client) *App {
 }
 
 func (a *App) Run() error {
+	// SETUP CHANNELS
+	coordchan := make(chan string)
+	textchan := make(chan string)
+	errorchan := make(chan error)
+	timeLeftchan := make(chan int)
+	resetTimerchan := make(chan int)
+	shipchannel := make(chan string)
+	//
+
+	// SETUP CONTEXTS
+	playingCtx, playingCancel := context.WithCancel(context.Background())
+	shipSetupCtx, shipCancel := context.WithCancel(context.Background())
+	//
+
+	// GET LOGGER
 	log := logger.GetLoggerInstance()
+	//
+
 	screen.Clear()
 	screen.MoveTopLeft()
 	var err error
@@ -94,7 +111,7 @@ func (a *App) Run() error {
 	}
 	for {
 		for {
-			err = a.ChooseOption()
+			err = a.ChooseOption(shipSetupCtx, shipCancel, shipchannel, errorchan)
 			if err == nil {
 				break
 			}
@@ -156,27 +173,16 @@ func (a *App) Run() error {
 				fmt.Println(err)
 			}
 		}
-		// SETUP CHANNELS
-		coordchan := make(chan string)
-		textchan := make(chan string)
-		errorchan := make(chan error)
-		timeLeftchan := make(chan int)
-		resetTimerchan := make(chan int)
-		//
-
-		// SETUP CONTEXTS
-		ctx, cancel := context.WithCancel(context.Background())
-		//
 
 		// SETUP GOROUTINES
-		go a.CheckStatus(ctx, cancel, textchan)
-		go a.OpponentShots(ctx, errorchan)
-		go a.Play(ctx, coordchan, textchan, errorchan, resetTimerchan)
-		go a.Timer(ctx, timeLeftchan, resetTimerchan)
+		go a.CheckStatus(playingCtx, playingCancel, textchan)
+		go a.OpponentShots(playingCtx, errorchan)
+		go a.Play(playingCtx, coordchan, textchan, errorchan, resetTimerchan)
+		go a.Timer(playingCtx, timeLeftchan, resetTimerchan)
 		//
 
 		// SHOW BOARD
-		a.ShowBoard(ctx, coordchan, textchan, errorchan, timeLeftchan)
+		a.ShowBoard(playingCtx, coordchan, textchan, errorchan, timeLeftchan)
 		if a.gameState != StateEnded {
 			for {
 				if a.gameState == StateEnded {

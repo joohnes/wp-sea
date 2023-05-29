@@ -88,16 +88,23 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	enemyBoard.SetStates(a.enemyStates)
 	go func() {
 		for {
-			char := enemyBoard.Listen(context.TODO())
-			// txt.SetText(fmt.Sprintf("Coordinate: %s", char))
-			coordchan <- char
-			ui.Log("Coordinate: %s", char)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				char := enemyBoard.Listen(context.TODO())
+				// txt.SetText(fmt.Sprintf("Coordinate: %s", char))
+				coordchan <- char
+				ui.Log("Coordinate: %s", char)
+			}
 		}
 	}()
 
 	go func() {
 		for {
 			select {
+			case <-ctx.Done():
+				return
 			case text := <-textchan:
 				chanText.SetText(text)
 				if text == "You have won the game!" {
@@ -116,36 +123,46 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 
 	go func() {
 		for {
-			switch a.gameState {
-			case StatePlayerTurn:
-				turnText.SetText("Your Turn!")
-				turnText.SetBgColor(gui.Green)
-			case StateOppTurn:
-				turnText.SetText("Enemy's turn!")
-				turnText.SetBgColor(gui.Red)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				switch a.gameState {
+				case StatePlayerTurn:
+					turnText.SetText("Your Turn!")
+					turnText.SetBgColor(gui.Green)
+				case StateOppTurn:
+					turnText.SetText("Enemy's turn!")
+					turnText.SetBgColor(gui.Red)
+				}
 			}
 		}
 	}()
 
 	go func() {
 		for {
-			time.Sleep(200 * time.Millisecond)
-			myBoard.SetStates(a.myStates)
-			enemyBoard.SetStates(a.enemyStates)
-			shotsCounttxt.SetText(fmt.Sprintf("Shots: %d", a.shotsCount))
-			shotsHittxt.SetText(fmt.Sprintf("Hits: %d", a.shotsHit))
-			var accuracy float64
-			if a.shotsCount != 0 {
-				accuracy = float64(a.shotsHit) / float64(a.shotsCount) * 100
-			}
-			accuracytxt.SetText(fmt.Sprintf("Accuracy: %.2f%%", accuracy))
-			if accuracy > 60 {
-				accuracytxt.SetBgColor(gui.Green)
-			} else {
-				accuracytxt.SetBgColor(gui.White)
-			}
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				time.Sleep(200 * time.Millisecond)
+				myBoard.SetStates(a.myStates)
+				enemyBoard.SetStates(a.enemyStates)
+				shotsCounttxt.SetText(fmt.Sprintf("Shots: %d", a.shotsCount))
+				shotsHittxt.SetText(fmt.Sprintf("Hits: %d", a.shotsHit))
+				var accuracy float64
+				if a.shotsCount != 0 {
+					accuracy = float64(a.shotsHit) / float64(a.shotsCount) * 100
+				}
+				accuracytxt.SetText(fmt.Sprintf("Accuracy: %.2f%%", accuracy))
+				if accuracy > 60 {
+					accuracytxt.SetBgColor(gui.Green)
+				} else {
+					accuracytxt.SetBgColor(gui.White)
+				}
 
-			shipsleft.SetText(fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.enemyShips[4], a.enemyShips[3], a.enemyShips[2], a.enemyShips[1]))
+				shipsleft.SetText(fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.enemyShips[4], a.enemyShips[3], a.enemyShips[2], a.enemyShips[1]))
+			}
 		}
 	}()
 
@@ -158,12 +175,23 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 	Left := 1
 	//Right := 50
 	txt := gui.NewText(Left, 1, "Press Ctrl+C to exit", nil)
-	ui.Draw(txt)
 	myBoard := gui.NewBoard(Left, 4, nil)
-	ui.Draw(myBoard)
+	infoText := gui.NewText(Left, 29, "Press any field to put a ship there", nil)
 	errorText := gui.NewText(Left, 32, "error", nil)
-	ui.Draw(errorText)
-	myBoard.SetStates(a.myStates)
+	myBoard.SetStates(a.playerStates)
+
+	DrawList := func(a ...gui.Drawable) {
+		for _, d := range a {
+			ui.Draw(d)
+		}
+	}
+	DrawList(
+		txt,
+		myBoard,
+		errorText,
+		infoText,
+	)
+
 	go func() {
 		for {
 			select {
@@ -195,7 +223,7 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 				return
 			default:
 				time.Sleep(200 * time.Millisecond)
-				myBoard.SetStates(a.myStates)
+				myBoard.SetStates(a.playerStates)
 			}
 		}
 	}()
