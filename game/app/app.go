@@ -3,10 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/inancgumus/screen"
 	"github.com/joohnes/wp-sea/game/helpers"
 	"github.com/joohnes/wp-sea/game/logger"
-	"time"
 
 	gui "github.com/grupawp/warships-gui/v2"
 )
@@ -138,7 +139,13 @@ func (a *App) Run() error {
 		}
 
 		for {
-			err = a.GetBoard()
+			err = helpers.ServerErrorWrapper(ShowErrors, func() error {
+				err := a.GetBoard()
+				if err != nil {
+					return err
+				}
+				return nil
+			})
 			if err == nil {
 				break
 			}
@@ -170,6 +177,9 @@ func (a *App) Run() error {
 		a.ShowBoard(ctx, coordchan, textchan, errorchan, timeLeftchan)
 		if a.gameState != StateEnded {
 			for {
+				if a.gameState == StateEnded {
+					break
+				}
 				err = a.client.Resign()
 				if err == nil {
 					break

@@ -3,15 +3,16 @@ package app
 import (
 	"errors"
 	"fmt"
-	"github.com/inancgumus/screen"
-	table "github.com/jedib0t/go-pretty/v6/table"
-	"github.com/joohnes/wp-sea/game/helpers"
-	"github.com/joohnes/wp-sea/game/logger"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/inancgumus/screen"
+	table "github.com/jedib0t/go-pretty/v6/table"
+	"github.com/joohnes/wp-sea/game/helpers"
+	"github.com/joohnes/wp-sea/game/logger"
 )
 
 type Pair struct {
@@ -24,6 +25,8 @@ type PairList []Pair
 func (p PairList) Len() int           { return len(p) }
 func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p PairList) Less(i, j int) bool { return p[i].Values[1] < p[j].Values[1] }
+
+var ErrBack = errors.New("back")
 
 func (a *App) ShowStats() error {
 	var data map[string][]int
@@ -62,17 +65,17 @@ func (a *App) ShowStats() error {
 	_, _ = fmt.Scanln()
 	return nil
 }
-func (a *App) ShowPlayerStats() error {
-	data, err := a.client.StatsPlayer(a.nick)
+func (a *App) ShowPlayerStats(nick string) error {
+	data, err := a.client.StatsPlayer(nick)
 	if err != nil {
 		return err
 	}
 	t := table.NewWriter()
-	t.SetTitle(fmt.Sprintf("%s's stats", a.nick))
+	t.SetTitle(fmt.Sprintf("%s's stats", nick))
 
 	t.AppendHeader(table.Row{"Nick", "Games", "Points", "Rank", "Wins"})
 
-	t.AppendRow(table.Row{a.nick, data[0], data[1], data[2], data[3]})
+	t.AppendRow(table.Row{nick, data[0], data[1], data[2], data[3]})
 	fmt.Println(t.Render())
 	fmt.Println("Press enter to go back to the menu")
 	_, _ = fmt.Scanln()
@@ -100,9 +103,11 @@ func PrintOptions(nick string) {
 	t.AppendRow(table.Row{2, "Play with another player"})
 	t.AppendRow(table.Row{3, "Top 10 players"})
 	t.AppendRow(table.Row{4, "Your stats"})
-	t.AppendRow(table.Row{5, "Set up your ships"})
+	t.AppendRow(table.Row{5, "Check someone's stats"})
+	t.AppendRow(table.Row{6, "Set up your ships"})
 	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
+	fmt.Print("Option: ")
 }
 
 func (a *App) ChoosePlayer() error {
@@ -129,7 +134,7 @@ func (a *App) ChoosePlayer() error {
 
 		t.AppendHeader(table.Row{"#", "Nick"})
 		for counter, x := range playerlist {
-			t.AppendRow(table.Row{counter + 1, x})
+			t.AppendRow(table.Row{counter + 1, x["nick"]})
 		}
 		t.AppendFooter(table.Row{"", fmt.Sprintf("Choose a player (1-%d)\nIf you wish to wait, type 'wait'\nTo go back, type 'back'", len(playerlist))})
 		fmt.Println(t.Render())
@@ -151,7 +156,7 @@ func (a *App) ChoosePlayer() error {
 
 			return nil
 		} else if strings.ToLower(answer) == "back" {
-			return errors.New("back")
+			return ErrBack
 		} else {
 			i, err := strconv.Atoi(answer)
 			if err != nil {
@@ -180,10 +185,10 @@ func (a *App) ChoosePlayer() error {
 		switch strings.ToLower(answer) {
 		case "y", "yes":
 			fmt.Println("Waiting...")
-			err = a.client.InitGame(nil, a.desc, a.nick, "", false)
-			if err != nil {
-				return err
-			}
+			// err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+			// if err != nil {
+			// 	return err
+			// }
 			err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 				err := a.client.InitGame(nil, a.desc, a.nick, "", false)
 				if err != nil {
@@ -242,7 +247,7 @@ Start:
 	case "2": // play with another player
 		for {
 			err := a.ChoosePlayer()
-			if err.Error() == "back" {
+			if errors.Is(err, ErrBack) {
 				goto Start
 			}
 			if err != nil {
@@ -259,13 +264,26 @@ Start:
 		}
 		goto Start
 	case "4": // stats
-		err := a.ShowPlayerStats()
+		err := a.ShowPlayerStats(a.nick)
 		if err != nil {
 			return err
 		}
 		goto Start
 
-	case "5": //set up ships
+	case "5":
+		fmt.Print("Enter name: ")
+		nick, err := helpers.GetAnswer()
+		if err != nil {
+			log.Println(err)
+			fmt.Println(err)
+			goto Start
+		}
+		err = a.ShowPlayerStats(nick)
+		if err != nil {
+			return err
+		}
+		goto Start
+	case "6": //set up ships
 	default:
 		fmt.Println("Please enter a valid number!")
 		goto Start

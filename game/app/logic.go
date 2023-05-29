@@ -3,10 +3,12 @@ package app
 import (
 	"context"
 	"fmt"
-	gui "github.com/grupawp/warships-gui/v2"
-	"github.com/joohnes/wp-sea/game/helpers"
 	"strings"
 	"time"
+
+	gui "github.com/grupawp/warships-gui/v2"
+	"github.com/joohnes/wp-sea/game/helpers"
+	"github.com/joohnes/wp-sea/game/logger"
 
 	"github.com/fatih/color"
 )
@@ -52,10 +54,12 @@ func (a *App) CheckIfWon() bool {
 	case "win":
 		green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
 		fmt.Println(green("You have won the game!"))
+		a.gameState = StateEnded
 		return true
 	case "lose":
 		red := color.New(color.FgBlack, color.BgRed).SprintFunc()
 		fmt.Println(red("You have lost the game!"))
+		a.gameState = StateEnded
 		return true
 	}
 	return false
@@ -138,6 +142,7 @@ func (a *App) HitOrMiss(coord string) error {
 
 func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textchan chan<- string) {
 	statusTicker := time.NewTicker(2 * time.Second)
+	log := logger.GetLoggerInstance()
 	for {
 		select {
 		case <-statusTicker.C:
@@ -146,6 +151,7 @@ func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textch
 				continue
 			}
 			a.actualStatus = *status
+			log.Println(status.GameStatus)
 			if status.GameStatus == "ended" {
 				a.gameState = StateEnded
 				switch status.LastGameStatus {
@@ -226,6 +232,7 @@ func (a *App) Timer(ctx context.Context, timeLeftchan, resetTimerchan chan int) 
 			timeLeft -= 1
 		case <-syncTimer.C:
 			timeLeft = a.actualStatus.Timer
+			second.Reset(time.Second)
 		case <-resetTimerchan:
 			second.Reset(time.Second)
 			timeLeft = 60

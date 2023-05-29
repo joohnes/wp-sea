@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/joohnes/wp-sea/game/app"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/joohnes/wp-sea/game/app"
 )
 
 const (
@@ -292,9 +293,6 @@ func (c *Client) PlayerList() ([]map[string]string, error) {
 		return []map[string]string{}, err
 	}
 
-	req.Header = http.Header{
-		tokenHeader: []string{c.token},
-	}
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return []map[string]string{}, err

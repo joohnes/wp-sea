@@ -26,7 +26,7 @@ func GetAnswer() (string, error) {
 func GetName() (string, error) {
 	var answer string
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Enter your name: ")
+	fmt.Print("Enter your name: ")
 	for scanner.Scan() {
 		answer = scanner.Text()
 		break
@@ -39,7 +39,7 @@ func GetName() (string, error) {
 func GetDesc() (string, error) {
 	var answer string
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Enter your description: ")
+	fmt.Print("Enter your description: ")
 	for scanner.Scan() {
 		answer = scanner.Text()
 		break
