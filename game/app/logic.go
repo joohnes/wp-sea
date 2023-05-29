@@ -148,6 +148,12 @@ func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textch
 			if err != nil {
 				continue
 			}
+			switch status.ShouldFire {
+			case true:
+				a.gameState = StatePlayerTurn
+			case false:
+				a.gameState = StateOppTurn
+			}
 			a.actualStatus = *status
 			if status.GameStatus == "ended" {
 				a.gameState = StateEnded
@@ -182,8 +188,8 @@ func (a *App) OpponentShots(ctx context.Context, errorchan chan<- error) {
 						errorchan <- err
 					}
 				}
+				a.gameState = StatePlayerTurn
 			}
-			a.gameState = StatePlayerTurn
 			// additional check
 		case <-checkTicker.C:
 			for _, v := range a.actualStatus.OppShots {
@@ -240,40 +246,11 @@ func (a *App) Timer(ctx context.Context, timeLeftchan, resetTimerchan chan int) 
 	}
 }
 
-func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipchannel chan string, errorchan chan error) {
-	for {
-		select {
-		case coord := <-shipchannel:
-			coords, err := helpers.NumericCords(coord)
-			if err != nil {
-				errorchan <- err
-				break
-			}
-			err = a.ValidateShipPlacement(coords, cancel)
-			if err != nil {
-				errorchan <- err
-			}
-
-		case <-ctx.Done():
-			return
-		}
-	}
-}
-
-func (a *App) ValidateShipPlacement(coords map[string]uint8, cancel context.CancelFunc) error {
-
-	if a.playerStates[coords["x"]][coords["y"]] == "Ship" {
-		a.playerStates[coords["x"]][coords["y"]] = ""
-	} else if a.playerStates[coords["x"]][coords["y"]] == "" {
-
-		a.playerStates[coords["x"]][coords["y"]] = "Ship"
-	}
-
-	return nil
-}
-
 func (a *App) Reset() {
 	a.oppShots = []string{}
+	a.oppNick = ""
+	a.oppDesc = ""
+	a.actualStatus = StatusResponse{}
 	a.shotsCount = 0
 	a.shotsHit = 0
 	a.myStates = [10][10]gui.State{}
@@ -281,6 +258,7 @@ func (a *App) Reset() {
 	a.gameState = StateStart
 	a.enemyShips = map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
 	a.playerShots = map[string]string{}
+	a.client.ResetToken()
 }
 
 // TranslateMap Translates [][]gui.State to coord list, so we can send it in a request
@@ -293,15 +271,4 @@ func (a *App) TranslateMap() (coords []string) {
 		}
 	}
 	return
-}
-
-func (a *App) CheckIfChangedMap() bool {
-	for _, x := range a.playerStates {
-		for _, y := range x {
-			if y != "Ship" {
-				return true
-			}
-		}
-	}
-	return false
 }

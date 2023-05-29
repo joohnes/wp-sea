@@ -145,7 +145,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 			case <-ctx.Done():
 				return
 			default:
-				time.Sleep(200 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 				myBoard.SetStates(a.myStates)
 				enemyBoard.SetStates(a.enemyStates)
 				shotsCounttxt.SetText(fmt.Sprintf("Shots: %d", a.shotsCount))
@@ -176,8 +176,9 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 	//Right := 50
 	txt := gui.NewText(Left, 1, "Press Ctrl+C to exit", nil)
 	myBoard := gui.NewBoard(Left, 4, nil)
-	infoText := gui.NewText(Left, 29, "Press any field to put a ship there", nil)
-	errorText := gui.NewText(Left, 32, "error", nil)
+	infoText := gui.NewText(Left, 27, "Press any field to put a ship there", nil)
+	shipsText := gui.NewText(Left, 29, fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.placeShips[4], a.placeShips[3], a.placeShips[2], a.placeShips[1]), &playerCfg)
+	errorText := gui.NewText(Left, 31, "", &errCfg)
 	myBoard.SetStates(a.playerStates)
 
 	DrawList := func(a ...gui.Drawable) {
@@ -190,6 +191,7 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 		myBoard,
 		errorText,
 		infoText,
+		shipsText,
 	)
 
 	go func() {
@@ -222,8 +224,9 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 			case <-ctx.Done():
 				return
 			default:
-				time.Sleep(200 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 				myBoard.SetStates(a.playerStates)
+				shipsText.SetText(fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.placeShips[4], a.placeShips[3], a.placeShips[2], a.placeShips[1]))
 			}
 		}
 	}()
