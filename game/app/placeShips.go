@@ -56,7 +56,7 @@ func (a *App) ValidateShipPlacement(coords map[string]uint8, cancel context.Canc
 		if err != nil {
 			return err
 		}
-		err = a.CheckAll()
+		err = a.CheckFigures()
 		if err != nil {
 			return err
 		}
@@ -168,7 +168,7 @@ func (a *App) countShips(x, y int, points *[]point) {
 	}
 }
 
-func (a *App) CheckAll() error {
+func (a *App) CheckFigures() error {
 	// Wrong figures
 	vec := [][]point{
 		{
