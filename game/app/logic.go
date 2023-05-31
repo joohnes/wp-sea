@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/joohnes/wp-sea/game/logger"
 	"strings"
 	"time"
 
@@ -271,4 +272,11 @@ func (a *App) TranslateMap() (coords []string) {
 		}
 	}
 	return
+}
+
+func (a *App) LogError(err error) {
+	logger.GetLoggerInstance().Println(err)
+	if ShowErrors {
+		fmt.Println(err)
+	}
 }

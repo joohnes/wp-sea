@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	gui "github.com/grupawp/warships-gui/v2"
 	"github.com/inancgumus/screen"
 	"github.com/joohnes/wp-sea/game/helpers"
-	"github.com/joohnes/wp-sea/game/logger"
-
-	gui "github.com/grupawp/warships-gui/v2"
 )
 
 const ShowErrors = true
@@ -84,10 +82,6 @@ func (a *App) Run() error {
 	shipSetupCtx, shipCancel := context.WithCancel(context.Background())
 	//
 
-	// GET LOGGER
-	log := logger.GetLoggerInstance()
-	//
-
 	screen.Clear()
 	screen.MoveTopLeft()
 	var err error
@@ -96,10 +90,7 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		log.Println(err)
-		if ShowErrors {
-			fmt.Println(err)
-		}
+		a.LogError(err)
 	}
 
 	for {
@@ -107,10 +98,7 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		log.Println(err)
-		if ShowErrors {
-			fmt.Println(err)
-		}
+		a.LogError(err)
 	}
 	for {
 		for {
@@ -118,10 +106,7 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			log.Println(err)
-			if ShowErrors {
-				fmt.Println(err)
-			}
+			a.LogError(err)
 
 			if a.gameState != StateStart {
 				break
@@ -137,10 +122,7 @@ func (a *App) Run() error {
 
 		err = helpers.ServerErrorWrapper(ShowErrors, a.WaitForStart)
 		if err != nil {
-			log.Println(err)
-			if ShowErrors {
-				fmt.Println(err)
-			}
+			a.LogError(err)
 		}
 
 		for {
@@ -154,10 +136,7 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			log.Println(err)
-			if ShowErrors {
-				fmt.Println(err)
-			}
+			a.LogError(err)
 		}
 
 		for {
@@ -171,10 +150,7 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			log.Println(err)
-			if ShowErrors {
-				fmt.Println(err)
-			}
+			a.LogError(err)
 		}
 
 		// SETUP GOROUTINES
@@ -195,11 +171,7 @@ func (a *App) Run() error {
 				if err == nil {
 					break
 				}
-				log.Println(err)
-				if ShowErrors {
-					fmt.Println("GAMESTATE == ", a.gameState)
-					fmt.Println(err)
-				}
+				a.LogError(err)
 			}
 		}
 		a.Reset()

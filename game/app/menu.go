@@ -127,10 +127,7 @@ func (a *App) ChoosePlayer() error {
 		var err error
 		playerlist, err = a.client.PlayerList()
 		if err != nil {
-			log.Println(err.Error())
-			if ShowErrors {
-				fmt.Println(err.Error())
-			}
+			a.LogError(err)
 			return err
 		}
 		return nil
@@ -207,9 +204,6 @@ func (a *App) ChoosePlayer() error {
 			err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 				err := a.client.InitGame(nil, a.desc, a.nick, "", false)
 				if err != nil {
-					if ShowErrors {
-						fmt.Println(err.Error())
-					}
 					return err
 				}
 				return nil
@@ -271,10 +265,7 @@ Start:
 				goto Start
 			}
 			if err != nil {
-				log.Println(err)
-				if ShowErrors {
-					fmt.Println(err)
-				}
+				a.LogError(err)
 				continue
 			}
 			break
