@@ -87,7 +87,12 @@ func (c *Client) InitGame(coords []string, desc, nick, targetOpponent string, wp
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf("could not init game, %d", resp.StatusCode))
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return err
+		}
+		return errors.New(errMsg["message"])
 	}
 
 	c.token = resp.Header.Get(tokenHeader)
@@ -118,7 +123,12 @@ func (c *Client) Board() ([]string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return []string{}, errors.New("could not retrieve board")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return nil, err
+		}
+		return []string{}, errors.New(errMsg["message"])
 	}
 	body := Board{}
 	err = json.NewDecoder(resp.Body).Decode(&body)
@@ -150,7 +160,12 @@ func (c *Client) Status() (*app.StatusResponse, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return nil, errors.New("could not retrieve status")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(errMsg["message"])
 	}
 	body := app.StatusResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&body)
@@ -189,7 +204,12 @@ func (c *Client) Shoot(coord string) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return "", errors.New("could not shoot")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return "", err
+		}
+		return "", errors.New(errMsg["message"])
 	}
 	var body map[string]string
 
@@ -221,7 +241,12 @@ func (c *Client) Resign() error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return errors.New("could not resign")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return err
+		}
+		return errors.New(errMsg["message"])
 	}
 	fmt.Println("You have successfully resigned the game!")
 	return nil
@@ -248,7 +273,12 @@ func (c *Client) GetOppDesc() (string, string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return "", "", errors.New("could not retrieve opp description")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return "", "", err
+		}
+		return "", "", errors.New(errMsg["message"])
 	}
 	var body map[string]interface{}
 
@@ -281,7 +311,12 @@ func (c *Client) Refresh() error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return errors.New("could not refresh")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return err
+		}
+		return errors.New(errMsg["message"])
 	}
 	return nil
 }
@@ -303,7 +338,12 @@ func (c *Client) PlayerList() ([]map[string]string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return []map[string]string{}, errors.New("could not get player list")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(errMsg["message"])
 	}
 	var body []map[string]string
 	err = json.NewDecoder(resp.Body).Decode(&body)
@@ -333,7 +373,12 @@ func (c *Client) Stats() (map[string][]int, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return map[string][]int{}, errors.New("player not found")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(errMsg["message"])
 	}
 	var body map[string][]Stats
 	err = json.NewDecoder(resp.Body).Decode(&body)
@@ -375,7 +420,12 @@ func (c *Client) StatsPlayer(nick string) ([]int, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return []int{}, errors.New("player not found")
+		errMsg := map[string]string{}
+		err = json.NewDecoder(resp.Body).Decode(&errMsg)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(errMsg["message"])
 	}
 	var body map[string]Stats
 	err = json.NewDecoder(resp.Body).Decode(&body)
