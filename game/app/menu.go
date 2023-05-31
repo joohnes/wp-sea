@@ -72,14 +72,33 @@ func (a *App) ShowPlayerStats(nick string) error {
 	_, _ = fmt.Scanln()
 	return nil
 }
+func (a *App) WaitingTimer() {
+	t := time.NewTicker(time.Second)
+	defer t.Stop()
+	dur := 0
+	fmt.Print("\033[s")
+	for {
+		if a.gameState != StateWaiting {
+			return
+		}
+		select {
+		case <-t.C:
+			fmt.Print("\033[u\033[K")
+			fmt.Printf("Waiting [%v seconds]", dur)
+			dur++
+		}
+	}
+}
 
 func (a *App) WaitingRefresh() {
+	go a.WaitingTimer()
 	for {
 		if a.gameState == StateWaiting {
 			err := a.client.Refresh()
 			if err != nil {
-				time.Sleep(10 * time.Second)
+				logger.GetLoggerInstance().Println(err)
 			}
+			time.Sleep(10 * time.Second)
 		} else {
 			return
 		}
@@ -136,7 +155,6 @@ func (a *App) ChoosePlayer() error {
 			return err
 		}
 		if strings.ToLower(answer) == "wait" {
-			fmt.Println("Waiting...")
 			var err error
 			if a.CheckIfChangedMap() {
 				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", false)
@@ -175,8 +193,10 @@ func (a *App) ChoosePlayer() error {
 			return nil
 		}
 	} else {
-		fmt.Println("No players waiting at the moment")
-		fmt.Println("Do you want to wait for another player? y/n")
+		t := table.NewWriter()
+		t.SetTitle("No players waiting at the moment")
+		t.AppendRow(table.Row{"Do you want to wait for another player? [y/n]"})
+		fmt.Println(t.Render())
 	NoPlayersAgain:
 		answer, err := helpers.GetAnswer(false)
 		if err != nil {
@@ -184,7 +204,6 @@ func (a *App) ChoosePlayer() error {
 		}
 		switch strings.ToLower(answer) {
 		case "y", "yes":
-			fmt.Println("Waiting...")
 			err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 				err := a.client.InitGame(nil, a.desc, a.nick, "", false)
 				if err != nil {
@@ -206,7 +225,7 @@ func (a *App) ChoosePlayer() error {
 		case "n", "no":
 			return ErrBack
 		default:
-			fmt.Println("Please type 'y' or 'n'")
+			fmt.Println("Please type '(y)es' or '(n)o'")
 			goto NoPlayersAgain
 		}
 	}
@@ -253,7 +272,9 @@ Start:
 			}
 			if err != nil {
 				log.Println(err)
-				fmt.Println("Error occurred. Please try again")
+				if ShowErrors {
+					fmt.Println(err)
+				}
 				continue
 			}
 			break
