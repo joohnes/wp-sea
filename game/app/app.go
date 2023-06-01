@@ -119,6 +119,7 @@ func (a *App) Run() error {
 			time.Sleep(2 * time.Second)
 			fmt.Println("Server error occurred1. Please try again")
 		}
+		shipCancel()
 
 		err = helpers.ServerErrorWrapper(ShowErrors, a.WaitForStart)
 		if err != nil {

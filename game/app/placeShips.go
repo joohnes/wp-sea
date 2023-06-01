@@ -44,11 +44,11 @@ func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipcha
 
 func (a *App) ValidateShipPlacement(coords map[string]uint8, cancel context.CancelFunc) error {
 	if a.playerStates[coords["x"]][coords["y"]] == "" {
-		err := a.CheckShipLength(coords)
+		_, err := a.CheckShipLength(int(coords["x"]), int(coords["y"]))
 		if err != nil {
 			return err
 		}
-		err = a.CheckCorners(coords)
+		err = a.CheckCorners(int(coords["x"]), int(coords["y"]))
 		if err != nil {
 			return err
 		}
@@ -61,13 +61,14 @@ func (a *App) ValidateShipPlacement(coords map[string]uint8, cancel context.Canc
 			return err
 		}
 		a.playerStates[coords["x"]][coords["y"]] = "Ship"
+		a.CheckAllShipsLength()
 	} else if a.playerStates[coords["x"]][coords["y"]] == "Ship" {
 		a.playerStates[coords["x"]][coords["y"]] = ""
 	}
 	return nil
 }
 
-func (a *App) CheckCorners(coords map[string]uint8) error {
+func (a *App) CheckCorners(x, y int) error {
 	points := []point{
 		{-1, 1},
 		{1, 1},
@@ -76,8 +77,8 @@ func (a *App) CheckCorners(coords map[string]uint8) error {
 	}
 
 	for _, v := range points {
-		dx := int(coords["x"]) + v.x
-		dy := int(coords["y"]) + v.y
+		dx := x + v.x
+		dy := y + v.y
 		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
 			continue
 		}
@@ -87,8 +88,8 @@ func (a *App) CheckCorners(coords map[string]uint8) error {
 				{0, v.y},
 			}
 			for _, s := range vec {
-				dx1 := int(coords["x"]) + s.x
-				dy1 := int(coords["y"]) + s.y
+				dx1 := x + s.x
+				dy1 := y + s.y
 				if dx1 < 0 || dx1 >= 10 || dy1 < 0 || dy1 >= 10 {
 					continue
 				}
@@ -127,13 +128,13 @@ func (a *App) CheckCornerNumber(coords map[string]uint8) error {
 	return nil
 }
 
-func (a *App) CheckShipLength(coords map[string]uint8) error {
+func (a *App) CheckShipLength(x, y int) ([]point, error) {
 	var points []point
-	a.countShips(int(coords["x"]), int(coords["y"]), &points)
+	a.countShips(x, y, &points)
 	if len(points) > 4 {
-		return errors.New("too long")
+		return points, errors.New("too long")
 	}
-	return nil
+	return points, nil
 }
 
 func (a *App) countShips(x, y int, points *[]point) {
@@ -221,4 +222,36 @@ func (a *App) CheckFigures() error {
 		}
 	}
 	return nil
+}
+
+func IsIn(arr []point, x, y int) bool {
+	for _, pair := range arr {
+		if pair.x == x && pair.y == y {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *App) CheckAllShipsLength() {
+	var checked []point
+	basemap := map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
+	for i := range a.playerStates {
+		for j, state := range a.playerStates[i] {
+			if state == "Ship" {
+				if IsIn(checked, i, j) {
+					continue
+				}
+				points, err := a.CheckShipLength(i, j)
+				if err != nil {
+					return
+				}
+				basemap[len(points)]--
+				for _, point := range points {
+					checked = append(checked, point)
+				}
+			}
+		}
+	}
+	a.placeShips = basemap
 }
