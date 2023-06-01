@@ -115,6 +115,7 @@ func PrintOptions(nick string) {
 	t.AppendRow(table.Row{4, "Your stats"})
 	t.AppendRow(table.Row{5, "Check someone's stats"})
 	t.AppendRow(table.Row{6, "Set up your ships"})
+	t.AppendRow(table.Row{7, "Reset ship placement"})
 	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
 	fmt.Print("Option: ")
@@ -283,7 +284,7 @@ Start:
 		}
 		goto Start
 
-	case "5":
+	case "5": // specific player stats
 		fmt.Print("Enter name: ")
 		nick, err := helpers.GetAnswer(true)
 		if err != nil {
@@ -299,6 +300,15 @@ Start:
 	case "6": //set up ships
 		go a.PlaceShips(ctx, cancel, shipchannel, errchan)
 		a.SetUpShips(ctx, shipchannel, errchan)
+		goto Start
+	case "7": //reset ship placement
+		for i := range a.playerStates {
+			for j := range a.playerStates[i] {
+				a.playerStates[i][j] = ""
+			}
+		}
+		fmt.Println("Ship placement has ben reset!")
+		time.Sleep(time.Second * 2)
 		goto Start
 	default:
 		fmt.Println("Please enter a valid number!")
