@@ -30,7 +30,7 @@ func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipcha
 				errorchan <- err
 				break
 			}
-			err = a.ValidateShipPlacement(coords, cancel)
+			err = a.ValidateShipPlacement(int(coords["x"]), int(coords["y"]), cancel)
 			if err != nil {
 				errorchan <- err
 				break
@@ -42,17 +42,21 @@ func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipcha
 	}
 }
 
-func (a *App) ValidateShipPlacement(coords map[string]uint8, cancel context.CancelFunc) error {
-	if a.playerStates[coords["x"]][coords["y"]] == "" {
-		_, err := a.CheckShipLength(int(coords["x"]), int(coords["y"]))
+func (a *App) ValidateShipPlacement(x, y int, cancel context.CancelFunc) error {
+	if a.playerStates[x][y] == "" {
+		points, err := a.CheckShipLength(x, y)
 		if err != nil {
 			return err
 		}
-		err = a.CheckCorners(int(coords["x"]), int(coords["y"]))
+		if a.placeShips[len(points)] == 0 {
+			return errors.New("you can't place anymore ships of that type")
+		}
+
+		err = a.CheckCorners(x, y)
 		if err != nil {
 			return err
 		}
-		err = a.CheckCornerNumber(coords)
+		err = a.CheckCornerNumber(x, y)
 		if err != nil {
 			return err
 		}
@@ -60,10 +64,11 @@ func (a *App) ValidateShipPlacement(coords map[string]uint8, cancel context.Canc
 		if err != nil {
 			return err
 		}
-		a.playerStates[coords["x"]][coords["y"]] = "Ship"
+		a.playerStates[x][y] = "Ship"
 		a.CheckAllShipsLength()
-	} else if a.playerStates[coords["x"]][coords["y"]] == "Ship" {
-		a.playerStates[coords["x"]][coords["y"]] = ""
+	} else if a.playerStates[x][y] == "Ship" {
+		a.playerStates[x][y] = ""
+		a.CheckAllShipsLength()
 	}
 	return nil
 }
@@ -103,7 +108,7 @@ func (a *App) CheckCorners(x, y int) error {
 	return nil
 }
 
-func (a *App) CheckCornerNumber(coords map[string]uint8) error {
+func (a *App) CheckCornerNumber(x, y int) error {
 	points := []point{
 		{-1, 1},
 		{1, 1},
@@ -113,8 +118,8 @@ func (a *App) CheckCornerNumber(coords map[string]uint8) error {
 	corners := 0
 
 	for _, v := range points {
-		dx := int(coords["x"]) + v.x
-		dy := int(coords["y"]) + v.y
+		dx := x + v.x
+		dy := y + v.y
 		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
 			continue
 		}

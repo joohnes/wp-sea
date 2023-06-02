@@ -173,11 +173,15 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan chan error) {
 	ui := gui.NewGUI(true)
 	Left := 1
-	//Right := 50
+	Right := 50
 	txt := gui.NewText(Left, 1, "Press Ctrl+C to exit", nil)
 	myBoard := gui.NewBoard(Left, 4, nil)
 	infoText := gui.NewText(Left, 27, "Press any field to put a ship there", nil)
-	shipsText := gui.NewText(Left, 29, fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.placeShips[4], a.placeShips[3], a.placeShips[2], a.placeShips[1]), &playerCfg)
+	shipsInfo := gui.NewText(Right, 4, "Ships you must place to start a game:", nil)
+	shipsText4 := gui.NewText(Right, 6, fmt.Sprintf("4 mast: %d left", a.placeShips[4]), &playerCfg)
+	shipsText3 := gui.NewText(Right, 8, fmt.Sprintf("3 mast: %d left", a.placeShips[3]), &playerCfg)
+	shipsText2 := gui.NewText(Right, 10, fmt.Sprintf("2 mast: %d left", a.placeShips[2]), &playerCfg)
+	shipsText1 := gui.NewText(Right, 12, fmt.Sprintf("1 mast: %d left", a.placeShips[1]), &playerCfg)
 	errorText := gui.NewText(Left, 31, "", &errCfg)
 	myBoard.SetStates(a.playerStates)
 
@@ -191,7 +195,11 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 		myBoard,
 		errorText,
 		infoText,
-		shipsText,
+		shipsInfo,
+		shipsText4,
+		shipsText3,
+		shipsText2,
+		shipsText1,
 	)
 
 	go func() {
@@ -226,7 +234,10 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 			default:
 				time.Sleep(50 * time.Millisecond)
 				myBoard.SetStates(a.playerStates)
-				shipsText.SetText(fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.placeShips[4], a.placeShips[3], a.placeShips[2], a.placeShips[1]))
+				shipsText4.SetText(fmt.Sprintf("4 mast: %d left", a.placeShips[4]))
+				shipsText3.SetText(fmt.Sprintf("3 mast: %d left", a.placeShips[3]))
+				shipsText2.SetText(fmt.Sprintf("2 mast: %d left", a.placeShips[2]))
+				shipsText1.SetText(fmt.Sprintf("1 mast: %d left", a.placeShips[1]))
 			}
 		}
 	}()
