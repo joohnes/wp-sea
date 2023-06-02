@@ -9,15 +9,15 @@ import (
 	"time"
 )
 
-type logging struct {
+type Logging struct {
 	filename string
 	*log.Logger
 }
 
-var logger *logging
+var logger *Logging
 var once sync.Once
 
-func GetLoggerInstance() *logging {
+func GetLoggerInstance() *Logging {
 	once.Do(func() {
 		dt := time.Now()
 		t := dt.Format("2006-01-02::15-04-05")
@@ -26,7 +26,7 @@ func GetLoggerInstance() *logging {
 	return logger
 }
 
-func createLogger(fname string) *logging {
+func createLogger(fname string) *Logging {
 	absPath, err := filepath.Abs("logs")
 	if err != nil {
 		fmt.Println("Error reading given path:", err)
@@ -40,7 +40,7 @@ func createLogger(fname string) *logging {
 	}
 	file, _ := os.OpenFile(absPath+"/"+fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 
-	return &logging{
+	return &Logging{
 		filename: fname,
 		Logger:   log.New(file, "Error: ", log.Ldate|log.Ltime|log.Lshortfile),
 	}

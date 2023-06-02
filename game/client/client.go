@@ -286,9 +286,9 @@ func (c *Client) GetOppDesc() (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	opp_nick := fmt.Sprintf("%v", body["opponent"])
-	opp_desc := fmt.Sprintf("%v", body["opp_desc"])
-	return opp_nick, opp_desc, nil
+	oppNick := fmt.Sprintf("%v", body["opponent"])
+	oppDesc := fmt.Sprintf("%v", body["opp_desc"])
+	return oppNick, oppDesc, nil
 }
 
 func (c *Client) Refresh() error {
