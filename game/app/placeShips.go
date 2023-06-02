@@ -6,10 +6,14 @@ import (
 	"github.com/joohnes/wp-sea/game/helpers"
 )
 
+var (
+	ErrInvalidShape = errors.New("invalid shape")
+)
+
 func (a *App) CheckIfChangedMap() bool {
 	for _, x := range a.playerStates {
 		for _, y := range x {
-			if y != "Ship" {
+			if y == "Ship" {
 				return true
 			}
 		}
@@ -17,9 +21,14 @@ func (a *App) CheckIfChangedMap() bool {
 	return false
 }
 
-var (
-	ErrInvalidShape = errors.New("invalid shape")
-)
+func (a *App) Requirements() bool {
+	for _, x := range a.placeShips {
+		if x != 0 {
+			return false
+		}
+	}
+	return true
+}
 
 func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipchannel chan string, errorchan chan error) {
 	for {

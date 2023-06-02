@@ -84,8 +84,13 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		legendShip,
 	)
 
-	myBoard.SetStates(a.myStates)
+	if a.Requirements() {
+		myBoard.SetStates(a.playerStates)
+	} else {
+		myBoard.SetStates(a.myStates)
+	}
 	enemyBoard.SetStates(a.enemyStates)
+
 	go func() {
 		for {
 			select {
@@ -146,7 +151,11 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 				return
 			default:
 				time.Sleep(50 * time.Millisecond)
-				myBoard.SetStates(a.myStates)
+				if a.Requirements() {
+					myBoard.SetStates(a.playerStates)
+				} else {
+					myBoard.SetStates(a.myStates)
+				}
 				enemyBoard.SetStates(a.enemyStates)
 				shotsCounttxt.SetText(fmt.Sprintf("Shots: %d", a.shotsCount))
 				shotsHittxt.SetText(fmt.Sprintf("Hits: %d", a.shotsHit))
@@ -182,6 +191,7 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 	shipsText3 := gui.NewText(Right, 8, fmt.Sprintf("3 mast: %d left", a.placeShips[3]), &playerCfg)
 	shipsText2 := gui.NewText(Right, 10, fmt.Sprintf("2 mast: %d left", a.placeShips[2]), &playerCfg)
 	shipsText1 := gui.NewText(Right, 12, fmt.Sprintf("1 mast: %d left", a.placeShips[1]), &playerCfg)
+	shipsReqText := gui.NewText(Right, 16, "", nil)
 	errorText := gui.NewText(Left, 31, "", &errCfg)
 	myBoard.SetStates(a.playerStates)
 
@@ -200,6 +210,7 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 		shipsText3,
 		shipsText2,
 		shipsText1,
+		shipsReqText,
 	)
 
 	go func() {
@@ -209,9 +220,7 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 				return
 			default:
 				char := myBoard.Listen(context.TODO())
-				txt.SetText(fmt.Sprintf("Coordinate: %s", char))
 				shipchannel <- char
-				ui.Log("Coordinate: %s", char)
 			}
 		}
 	}()
@@ -238,6 +247,12 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 				shipsText3.SetText(fmt.Sprintf("3 mast: %d left", a.placeShips[3]))
 				shipsText2.SetText(fmt.Sprintf("2 mast: %d left", a.placeShips[2]))
 				shipsText1.SetText(fmt.Sprintf("1 mast: %d left", a.placeShips[1]))
+
+				if !a.Requirements() {
+					shipsReqText.SetText("You need to place all the ships for the game to start!")
+				} else {
+					shipsReqText.SetText("Your board is ready to start the game!")
+				}
 			}
 		}
 	}()

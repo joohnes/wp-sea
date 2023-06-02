@@ -216,7 +216,6 @@ func (a *App) GetBoard() error {
 			return err
 		}
 		a.myStates[coordmap["x"]][coordmap["y"]] = "Ship"
-
 	}
 	return nil
 }

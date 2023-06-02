@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/inancgumus/screen"
-	table "github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/joohnes/wp-sea/game/helpers"
 	"github.com/joohnes/wp-sea/game/logger"
 )
@@ -116,7 +116,7 @@ func (a *App) WaitingRefresh() {
 	}
 }
 
-func PrintOptions(nick string) {
+func PrintOptions(nick string, changed bool) {
 	t := table.NewWriter()
 	t.SetTitle(fmt.Sprintf("Nick: %s", nick))
 	t.AppendHeader(table.Row{"#", "Choose an option"})
@@ -125,7 +125,11 @@ func PrintOptions(nick string) {
 	t.AppendRow(table.Row{3, "Top 10 players"})
 	t.AppendRow(table.Row{4, "Your stats"})
 	t.AppendRow(table.Row{5, "Check someone's stats"})
-	t.AppendRow(table.Row{6, "Set up your ships"})
+	if changed {
+		t.AppendRow(table.Row{6, "Set up your ships (SET)"})
+	} else {
+		t.AppendRow(table.Row{6, "Set up your ships"})
+	}
 	t.AppendRow(table.Row{7, "Reset ship placement"})
 	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
@@ -165,10 +169,22 @@ func (a *App) ChoosePlayer() error {
 		}
 		if strings.ToLower(answer) == "wait" {
 			var err error
-			if a.CheckIfChangedMap() {
-				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", false)
+			if a.CheckIfChangedMap() && a.Requirements() {
+				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
+					err := a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", false)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
 			} else {
-				err = a.client.InitGame(nil, a.desc, a.nick, "", false)
+				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
+					err := a.client.InitGame(nil, a.desc, a.nick, "", false)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
 			}
 			if err != nil {
 				return err
@@ -191,10 +207,22 @@ func (a *App) ChoosePlayer() error {
 				fmt.Println("Please enter a valid number (1-", len(playerlist), ")")
 				goto Again
 			}
-			if a.CheckIfChangedMap() {
-				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, playerlist[i-1]["nick"], false)
+			if a.CheckIfChangedMap() && a.Requirements() {
+				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
+					err := a.client.InitGame(a.TranslateMap(), a.desc, a.nick, playerlist[i-1]["nick"], false)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
 			} else {
-				err = a.client.InitGame(nil, a.desc, a.nick, playerlist[i-1]["nick"], false)
+				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
+					err := a.client.InitGame(nil, a.desc, a.nick, playerlist[i-1]["nick"], false)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
 			}
 			if err != nil {
 				return err
@@ -237,12 +265,12 @@ func (a *App) ChoosePlayer() error {
 	}
 }
 
-func (a *App) ChooseOption(ctx context.Context, cancel context.CancelFunc, shipchannel chan string, errchan chan error) error {
+func (a *App) ChooseOption(ctx context.Context, cancel context.CancelFunc, shipchannel chan string, errChan chan error) error {
 	log := logger.GetLoggerInstance()
 Start:
 	screen.Clear()
 	screen.MoveTopLeft()
-	PrintOptions(a.nick)
+	PrintOptions(a.nick, a.Requirements())
 	answer, err := helpers.GetAnswer(false)
 	if err != nil {
 		log.Println(err)
@@ -255,7 +283,7 @@ Start:
 	case "1": // play with bot
 		err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 			var err error
-			if a.CheckIfChangedMap() {
+			if a.CheckIfChangedMap() && a.Requirements() {
 				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", true)
 			} else {
 				err = a.client.InitGame(nil, a.desc, a.nick, "", true)
@@ -309,8 +337,8 @@ Start:
 		}
 		goto Start
 	case "6": //set up ships
-		go a.PlaceShips(ctx, cancel, shipchannel, errchan)
-		a.SetUpShips(ctx, shipchannel, errchan)
+		go a.PlaceShips(ctx, cancel, shipchannel, errChan)
+		a.SetUpShips(ctx, shipchannel, errChan)
 		goto Start
 	case "7": //reset ship placement
 		for i := range a.playerStates {
@@ -318,7 +346,7 @@ Start:
 				a.playerStates[i][j] = ""
 			}
 		}
-		fmt.Println("Ship placement has ben reset!")
+		fmt.Println("Ship placement has been reset!")
 		time.Sleep(time.Second * 2)
 		goto Start
 	default:

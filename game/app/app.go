@@ -77,11 +77,6 @@ func (a *App) Run() error {
 	shipchannel := make(chan string)
 	//
 
-	// SETUP CONTEXTS
-	playingCtx, playingCancel := context.WithCancel(context.Background())
-	shipSetupCtx, shipCancel := context.WithCancel(context.Background())
-	//
-
 	screen.Clear()
 	screen.MoveTopLeft()
 	var err error
@@ -101,6 +96,11 @@ func (a *App) Run() error {
 		a.LogError(err)
 	}
 	for {
+		// SETUP CONTEXTS
+		playingCtx, playingCancel := context.WithCancel(context.Background())
+		shipSetupCtx, shipCancel := context.WithCancel(context.Background())
+		//
+
 		for {
 			err = a.ChooseOption(shipSetupCtx, shipCancel, shipchannel, errorchan)
 			if err == nil {
