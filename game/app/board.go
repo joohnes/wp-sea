@@ -109,6 +109,8 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	}()
 
 	go func() {
+		t := time.NewTicker(time.Second)
+		counter := 0
 		for {
 			select {
 			case <-ctx.Done():
@@ -123,6 +125,14 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 
 			case err := <-errorchan:
 				errorText.SetText(err.Error())
+				counter = 3
+			case <-t.C:
+				if counter > 1 {
+					counter--
+				} else {
+					errorText.SetText("")
+				}
+
 			case timeLeft := <-timeLeftchan:
 				timer.SetText(fmt.Sprintf("Time left: %v", timeLeft))
 			}
@@ -226,12 +236,21 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 		}
 	}()
 	go func() {
+		t := time.NewTicker(time.Second)
+		counter := 0
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case err := <-errorchan:
 				errorText.SetText(err.Error())
+				counter = 3
+			case <-t.C:
+				if counter > 1 {
+					counter--
+				} else {
+					errorText.SetText("")
+				}
 			}
 		}
 	}()
