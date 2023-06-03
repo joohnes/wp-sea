@@ -102,7 +102,7 @@ func (a *App) Run() error {
 		//
 
 		for {
-			err = a.ChooseOption(shipSetupCtx, shipCancel, shipchannel, errorchan)
+			err = a.ChooseOption(shipSetupCtx, shipchannel, errorchan)
 			if err == nil {
 				break
 			}

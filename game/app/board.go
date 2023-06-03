@@ -49,10 +49,10 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	playerBoardIndicator := gui.NewText(Left, 28, "Your Board", &playerCfg)
 	enemyBoardIndicator := gui.NewText(Right, 28, "Opponent's Board", &oppCfg)
 
-	legendEmpty := gui.NewText(Right, 36, "~ -> Empty space", nil)
-	legendShip := gui.NewText(Right, 37, "S -> Ship", nil)
-	legendHit := gui.NewText(Right, 38, "H -> Hit", nil)
-	legendMiss := gui.NewText(Right, 39, "M -> Miss", nil)
+	legendEmpty := gui.NewText(Right+20, 1, "~ -> Empty space", nil)
+	legendShip := gui.NewText(Right+20, 2, "S -> Ship", nil)
+	legendHit := gui.NewText(Right+20, 3, "H -> Hit", nil)
+	legendMiss := gui.NewText(Right+20, 4, "M -> Miss", nil)
 	legendEmpty.SetBgColor(gui.Blue)
 	legendShip.SetBgColor(gui.Green)
 	legendHit.SetBgColor(gui.Red)
@@ -269,8 +269,10 @@ func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan
 				shipsText1.SetText(fmt.Sprintf("1 mast: %d left", a.placeShips[1]))
 
 				if !a.Requirements() {
-					shipsReqText.SetText("You need to place all the ships for the game to start!")
+					shipsReqText.SetBgColor(gui.Red)
+					shipsReqText.SetText("You need to place all the ships for it to be sent to server")
 				} else {
+					shipsReqText.SetBgColor(gui.Green)
 					shipsReqText.SetText("Your board is ready to start the game!")
 				}
 			}

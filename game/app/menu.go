@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"sort"
 	"strconv"
@@ -126,7 +127,8 @@ func PrintOptions(nick string, changed bool) {
 	t.AppendRow(table.Row{4, "Your stats"})
 	t.AppendRow(table.Row{5, "Check someone's stats"})
 	if changed {
-		t.AppendRow(table.Row{6, "Set up your ships (SET)"})
+		green := color.New(color.FgGreen).SprintFunc()
+		t.AppendRow(table.Row{6, fmt.Sprintf("Set up your ships %s", green("(SET)"))})
 	} else {
 		t.AppendRow(table.Row{6, "Set up your ships"})
 	}
@@ -265,7 +267,7 @@ func (a *App) ChoosePlayer() error {
 	}
 }
 
-func (a *App) ChooseOption(ctx context.Context, cancel context.CancelFunc, shipchannel chan string, errChan chan error) error {
+func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan chan error) error {
 	log := logger.GetLoggerInstance()
 Start:
 	screen.Clear()

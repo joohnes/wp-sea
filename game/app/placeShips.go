@@ -58,15 +58,22 @@ func (a *App) ValidateShipPlacement(x, y int) error {
 			return errors.New("you can't place anymore ships of that type")
 		}
 
-		if len(points) == 4 {
-			err := a.CheckForWrongFigure(points)
-			if err != nil {
-				return err
-			}
-		} else if len(points) > 4 {
+		//if len(points) == 4 {
+		//	err := a.CheckForWrongFigures(points)
+		//	if err != nil {
+		//		return err
+		//	}
+		//} else if len(points) > 4 {
+		//	return errors.New("too long")
+		//}
+		/*
+			It seems that i imagined a few of the rules and added extra checks
+			I'll leave it here for the sake of my lost time
+		*/
+
+		if len(points) > 4 {
 			return errors.New("too long")
 		}
-
 		err := a.CheckCorners(x, y)
 		if err != nil {
 			return err
@@ -187,9 +194,10 @@ func (a *App) CheckAllShipsLength() {
 	a.placeShips = basemap
 }
 
-// CheckForWrongFigure will check if ship (of length 4) is in the correct shape.
+// CheckForWrongFigures will check if ship (of length 4) is in the correct shape.
 // If it is not, return ErrInvalidShape
-func (a *App) CheckForWrongFigure(points []point) error {
+// Well it happens that function is redundant
+func (a *App) CheckForWrongFigures(points []point) error {
 	correctShapes := [][]point{
 		{
 			{1, 0}, // horizontal straight
