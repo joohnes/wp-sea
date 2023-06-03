@@ -337,7 +337,7 @@ Start:
 		}
 		goto Start
 	case "6": //set up ships
-		go a.PlaceShips(ctx, cancel, shipchannel, errChan)
+		go a.PlaceShips(ctx, shipchannel, errChan)
 		a.SetUpShips(ctx, shipchannel, errChan)
 		goto Start
 	case "7": //reset ship placement

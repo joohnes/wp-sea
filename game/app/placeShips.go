@@ -30,7 +30,7 @@ func (a *App) Requirements() bool {
 	return true
 }
 
-func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipchannel chan string, errorchan chan error) {
+func (a *App) PlaceShips(ctx context.Context, shipchannel chan string, errorchan chan error) {
 	for {
 		select {
 		case coord := <-shipchannel:
@@ -39,7 +39,7 @@ func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipcha
 				errorchan <- err
 				break
 			}
-			err = a.ValidateShipPlacement(int(coords["x"]), int(coords["y"]), cancel)
+			err = a.ValidateShipPlacement(int(coords["x"]), int(coords["y"]))
 			if err != nil {
 				errorchan <- err
 				break
@@ -51,24 +51,23 @@ func (a *App) PlaceShips(ctx context.Context, cancel context.CancelFunc, shipcha
 	}
 }
 
-func (a *App) ValidateShipPlacement(x, y int, cancel context.CancelFunc) error {
+func (a *App) ValidateShipPlacement(x, y int) error {
 	if a.playerStates[x][y] == "" {
-		points, err := a.CheckShipLength(x, y)
-		if err != nil {
-			return err
-		}
+		points := a.CheckShipLength(x, y)
 		if a.placeShips[len(points)] == 0 {
 			return errors.New("you can't place anymore ships of that type")
 		}
 
 		if len(points) == 4 {
-			err = a.CheckForWrongFigure(points)
+			err := a.CheckForWrongFigure(points)
 			if err != nil {
 				return err
 			}
+		} else if len(points) > 4 {
+			return errors.New("too long")
 		}
 
-		err = a.CheckCorners(x, y)
+		err := a.CheckCorners(x, y)
 		if err != nil {
 			return err
 		}
@@ -76,14 +75,11 @@ func (a *App) ValidateShipPlacement(x, y int, cancel context.CancelFunc) error {
 		if err != nil {
 			return err
 		}
-		err = a.CheckFigures()
-		if err != nil {
-			return err
-		}
 		a.playerStates[x][y] = "Ship"
 		a.CheckAllShipsLength()
 	} else if a.playerStates[x][y] == "Ship" {
 		a.playerStates[x][y] = ""
+		a.CheckForLoners(x, y)
 		a.CheckAllShipsLength()
 	}
 	return nil
@@ -149,13 +145,10 @@ func (a *App) CheckCornerNumber(x, y int) error {
 	return nil
 }
 
-func (a *App) CheckShipLength(x, y int) ([]point, error) {
+func (a *App) CheckShipLength(x, y int) []point {
 	var points []point
 	a.countShips(x, y, &points)
-	if len(points) > 4 {
-		return points, errors.New("too long")
-	}
-	return points, nil
+	return points
 }
 
 func (a *App) countShips(x, y int, points *[]point) {
@@ -190,61 +183,6 @@ func (a *App) countShips(x, y int, points *[]point) {
 	}
 }
 
-func (a *App) CheckFigures() error {
-	// Wrong figures
-	vec := [][]point{
-		{
-			{1, 0},
-			{1, 1},
-			{2, 1},
-		},
-		{
-			{1, 0},
-			{0, 1},
-			{-1, 1},
-		},
-		{
-			{0, 1},
-			{-1, 1},
-			{-1, 2},
-		},
-		{
-			{0, 1},
-			{1, 1},
-			{1, 2},
-		},
-	}
-
-	for i, c := range a.playerStates {
-		for j, d := range c {
-			if d == "Ship" {
-				for _, shape := range vec {
-					counter := 0
-					x, y := 0, 0
-					for _, coord := range shape {
-						dx := coord.x + i
-						dy := coord.y + j
-						if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
-							continue
-						}
-						if a.playerStates[dx][dx] != "Ship" {
-							break
-						}
-						counter++
-						x = dx
-						y = dy
-					}
-					if counter > 2 {
-						a.playerStates[x][y] = ""
-						return ErrInvalidShape
-					}
-				}
-			}
-		}
-	}
-	return nil
-}
-
 func IsIn(arr []point, x, y int) bool {
 	for _, pair := range arr {
 		if pair.x == x && pair.y == y {
@@ -263,10 +201,10 @@ func (a *App) CheckAllShipsLength() {
 				if IsIn(checked, i, j) {
 					continue
 				}
-				points, err := a.CheckShipLength(i, j)
-				if err != nil {
-					return
-				}
+				points := a.CheckShipLength(i, j)
+				//if err != nil {
+				//	return
+				//}
 				basemap[len(points)]--
 				for _, point := range points {
 					checked = append(checked, point)
@@ -365,4 +303,29 @@ func (a *App) CheckForWrongFigure(points []point) error {
 		}
 	}
 	return ErrInvalidShape
+}
+
+// CheckForLoners checks the table for a "loner", which is ship on the corner
+// of another ship that was left, when player deleted the part of a ship that was connecting them
+func (a *App) CheckForLoners(x, y int) {
+	vec := []point{
+		{-1, 0}, // left
+		{0, -1}, // up
+		{1, 0},  // right
+		{0, 1},  // down
+	}
+
+	for _, v := range vec {
+		dx := x + v.x
+		dy := y + v.y
+		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
+			continue
+		}
+		if a.playerStates[dx][dy] == "Ship" {
+			points := a.CheckShipLength(dx, dy)
+			if len(points) == 1 {
+				a.playerStates[dx][dy] = ""
+			}
+		}
+	}
 }
