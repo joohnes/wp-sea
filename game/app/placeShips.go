@@ -61,6 +61,13 @@ func (a *App) ValidateShipPlacement(x, y int, cancel context.CancelFunc) error {
 			return errors.New("you can't place anymore ships of that type")
 		}
 
+		if len(points) == 4 {
+			err = a.CheckForWrongFigure(points)
+			if err != nil {
+				return err
+			}
+		}
+
 		err = a.CheckCorners(x, y)
 		if err != nil {
 			return err
@@ -268,4 +275,94 @@ func (a *App) CheckAllShipsLength() {
 		}
 	}
 	a.placeShips = basemap
+}
+
+// CheckForWrongFigure will check if ship (of length 4) is in the correct shape.
+// If it is not, return ErrInvalidShape
+func (a *App) CheckForWrongFigure(points []point) error {
+	correctShapes := [][]point{
+		{
+			{1, 0}, // horizontal straight
+			{2, 0},
+			{3, 0},
+		},
+		{
+			{0, 1}, // vertical straight
+			{0, 2},
+			{0, 3},
+		},
+		{
+			{0, 1}, // #
+			{0, 2}, // #
+			{1, 2}, // ##
+		},
+		{
+			{0, 1},  //  #
+			{0, 2},  //  #
+			{-1, 2}, // ##
+		},
+		{
+			{1, 0},  //  #   WE HAVE TO DO ANOTHER CHECK
+			{1, -1}, //  #   BUT FROM DIFFERENT SIDE
+			{1, -2}, // ##   THIS ONE IS FROM LEFT DOWN
+		},
+		{
+			{1, 0}, // ##
+			{1, 1}, //  #
+			{1, 2}, //  #
+		},
+		{
+			{1, 0}, // ##
+			{0, 1}, // #
+			{0, 2}, // #
+		},
+		{
+			{0, 1}, // #
+			{1, 1}, // ###
+			{2, 1},
+		},
+		{
+			{1, 0}, // ###
+			{2, 0}, // #
+			{0, 1},
+		},
+		{
+			{0, 1},  //   #
+			{-1, 1}, // ###
+			{-2, 1},
+		},
+		{
+			{1, 0}, //   #   SAME SITUATION HERE
+			{2, 0}, // ###   LEFT DOWN
+			{2, -1},
+		},
+		{
+			{1, 0}, // ###
+			{2, 0}, //   #
+			{2, 1},
+		},
+	}
+
+	minX := 10
+	minY := 10
+	for _, p := range points {
+		if p.x <= minX && p.y <= minY {
+			minX = p.x
+			minY = p.y
+		}
+	}
+	for _, shape := range correctShapes {
+		check := true
+		for _, block := range shape {
+			dx := minX + block.x
+			dy := minY + block.y
+			if !IsIn(points, dx, dy) {
+				check = false
+			}
+		}
+		if check {
+			return nil
+		}
+	}
+	return ErrInvalidShape
 }
