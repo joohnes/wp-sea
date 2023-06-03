@@ -71,15 +71,15 @@ func (a *App) ValidateShipPlacement(x, y int) error {
 		if err != nil {
 			return err
 		}
-		err = a.CheckCornerNumber(x, y)
-		if err != nil {
-			return err
-		}
 		a.playerStates[x][y] = "Ship"
 		a.CheckAllShipsLength()
 	} else if a.playerStates[x][y] == "Ship" {
 		a.playerStates[x][y] = ""
-		a.CheckForLoners(x, y)
+		points := a.CheckShipLength(x, y)
+		if len(points) > 2 {
+			a.CheckForLoners(x, y)
+		}
+		a.CheckLeftShips(points)
 		a.CheckAllShipsLength()
 	}
 	return nil
@@ -115,31 +115,6 @@ func (a *App) CheckCorners(x, y int) error {
 				}
 			}
 			return errors.New("you can't put ships diagonally")
-		}
-	}
-	return nil
-}
-
-func (a *App) CheckCornerNumber(x, y int) error {
-	points := []point{
-		{-1, 1},
-		{1, 1},
-		{1, -1},
-		{-1, -1},
-	}
-	corners := 0
-
-	for _, v := range points {
-		dx := x + v.x
-		dy := y + v.y
-		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
-			continue
-		}
-		if a.playerStates[dx][dy] == "Ship" {
-			corners++
-			if corners > 1 {
-				return errors.New("you can't put ships diagonally")
-			}
 		}
 	}
 	return nil
@@ -202,9 +177,6 @@ func (a *App) CheckAllShipsLength() {
 					continue
 				}
 				points := a.CheckShipLength(i, j)
-				//if err != nil {
-				//	return
-				//}
 				basemap[len(points)]--
 				for _, point := range points {
 					checked = append(checked, point)
@@ -325,7 +297,24 @@ func (a *App) CheckForLoners(x, y int) {
 			points := a.CheckShipLength(dx, dy)
 			if len(points) == 1 {
 				a.playerStates[dx][dy] = ""
+				return
 			}
+		}
+	}
+}
+
+// CheckLeftShips checks if the length of a ship left after the deletion of the part of a ship
+// can be placed on the board (avoid having -1 as a number of ships left to place in a.placeShips)
+func (a *App) CheckLeftShips(points []point) {
+	var counter int
+	for _, v := range points {
+		if a.playerStates[v.x][v.y] == "Ship" {
+			counter++
+		}
+	}
+	if a.placeShips[counter] < 1 {
+		for _, v := range points {
+			a.playerStates[v.x][v.y] = ""
 		}
 	}
 }

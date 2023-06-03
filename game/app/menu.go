@@ -346,6 +346,7 @@ Start:
 				a.playerStates[i][j] = ""
 			}
 		}
+		a.placeShips = map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
 		fmt.Println("Ship placement has been reset!")
 		time.Sleep(time.Second * 2)
 		goto Start
