@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -44,24 +43,15 @@ func (a *App) ShowStats() error {
 		return err
 	}
 
-	p := make(PairList, len(data))
-
-	i := 0
-	for k, v := range data {
-		p[i] = Pair{Key: k, Values: v}
-		i++
-	}
-
-	sort.Sort(sort.Reverse(p))
-
 	t := table.NewWriter()
 	t.SetTitle("Stats")
+	t.SortBy([]table.SortBy{{Name: "Points", Mode: table.DscNumeric}})
 
 	t.AppendHeader(table.Row{"#", "Nick", "Games", "Points", "Rank", "Wins"})
 	counter := 1
-	for _, x := range p {
-		t.AppendRow(table.Row{counter, x.Key, x.Values[0], x.Values[1], x.Values[2], x.Values[3]})
-		counter += 1
+	for i, x := range data {
+		t.AppendRow(table.Row{counter, i, x[0], x[1], x[2], x[3]})
+		counter++
 	}
 	fmt.Println(t.Render())
 	fmt.Println("Press enter to go back to the menu")
@@ -371,6 +361,10 @@ Start:
 		}
 		a.gameState = StateWaiting
 		a.algorithm = true
+	case "9":
+		a.ShowStatistics()
+		_, _ = fmt.Scanln()
+		goto Start
 	default:
 		fmt.Println("Please enter a valid number!")
 		time.Sleep(time.Second)
