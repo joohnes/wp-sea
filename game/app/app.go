@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/joohnes/wp-sea/game/logger"
 	"time"
 
 	gui "github.com/grupawp/warships-gui/v2"
@@ -28,22 +29,27 @@ type client interface {
 }
 
 type App struct {
-	client       client
-	nick         string
-	desc         string
-	oppShots     []string
-	oppNick      string
-	oppDesc      string
-	shotsCount   int
-	shotsHit     int
-	myStates     [10][10]gui.State
-	playerStates [10][10]gui.State
-	enemyStates  [10][10]gui.State
-	gameState    int
-	actualStatus StatusResponse
-	enemyShips   map[int]int
-	placeShips   map[int]int
-	playerShots  map[string]string
+	client         client
+	nick           string
+	desc           string
+	oppShots       []string
+	oppNick        string
+	oppDesc        string
+	shotsCount     int
+	shotsHit       int
+	myStates       [10][10]gui.State
+	playerStates   [10][10]gui.State
+	enemyStates    [10][10]gui.State
+	gameState      int
+	actualStatus   StatusResponse
+	enemyShips     map[int]int
+	placeShips     map[int]int
+	playerShots    map[string]string
+	statistics     map[string]int
+	algorithm      bool
+	mode           Mode
+	LastPlayerHit  string
+	algorithmTried []string
 }
 
 func New(c client) *App {
@@ -64,6 +70,11 @@ func New(c client) *App {
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[string]string{},
+		map[string]int{},
+		false,
+		TargetState,
+		"",
+		[]string{},
 	}
 }
 
@@ -85,7 +96,7 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		a.LogError(err)
+		logger.GetLoggerInstance().Println(err)
 	}
 
 	for {
@@ -93,7 +104,7 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		a.LogError(err)
+		logger.GetLoggerInstance().Println(err)
 	}
 	for {
 		// SETUP CONTEXTS
@@ -106,7 +117,7 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			a.LogError(err)
+			logger.GetLoggerInstance().Println(err)
 
 			if a.gameState != StateStart {
 				break
@@ -123,7 +134,7 @@ func (a *App) Run() error {
 
 		err = helpers.ServerErrorWrapper(ShowErrors, a.WaitForStart)
 		if err != nil {
-			a.LogError(err)
+			logger.GetLoggerInstance().Println(err)
 		}
 
 		for {
@@ -137,7 +148,7 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			a.LogError(err)
+			logger.GetLoggerInstance().Println(err)
 		}
 
 		for {
@@ -151,13 +162,17 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			a.LogError(err)
+			logger.GetLoggerInstance().Println(err)
 		}
 
 		// SETUP GOROUTINES
 		go a.CheckStatus(playingCtx, playingCancel, textchan)
 		go a.OpponentShots(playingCtx, errorchan)
-		go a.Play(playingCtx, coordchan, textchan, errorchan, resetTimerchan)
+		if !a.algorithm {
+			go a.Play(playingCtx, coordchan, textchan, errorchan, resetTimerchan)
+		} else {
+			go a.AlgorithmPlay(playingCtx, textchan, errorchan, resetTimerchan)
+		}
 		go a.Timer(playingCtx, timeLeftchan, resetTimerchan)
 		//
 
@@ -168,11 +183,17 @@ func (a *App) Run() error {
 				if a.gameState == StateEnded {
 					break
 				}
-				err = a.client.Resign()
+				err = helpers.ServerErrorWrapper(true, func() error {
+					if a.gameState != StateEnded {
+						return a.client.Resign()
+					} else {
+						return nil
+					}
+				})
 				if err == nil {
 					break
 				}
-				a.LogError(err)
+				logger.GetLoggerInstance().Println(err)
 			}
 		}
 		a.Reset()

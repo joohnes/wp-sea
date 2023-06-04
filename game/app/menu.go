@@ -133,6 +133,7 @@ func PrintOptions(nick string, changed bool) {
 		t.AppendRow(table.Row{6, "Set up your ships"})
 	}
 	t.AppendRow(table.Row{7, "Reset ship placement"})
+	t.AppendRow(table.Row{8, "Algorithm vs WPBot"})
 	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
 	fmt.Print("Option: ")
@@ -145,7 +146,7 @@ func (a *App) ChoosePlayer() error {
 		var err error
 		playerlist, err = a.client.PlayerList()
 		if err != nil {
-			a.LogError(err)
+			logger.GetLoggerInstance().Println(err)
 			return err
 		}
 		return nil
@@ -307,7 +308,7 @@ Start:
 				goto Start
 			}
 			if err != nil {
-				a.LogError(err)
+				logger.GetLoggerInstance().Println(err)
 				continue
 			}
 			break
@@ -352,6 +353,24 @@ Start:
 		fmt.Println("Ship placement has been reset!")
 		time.Sleep(time.Second * 2)
 		goto Start
+	case "8":
+		err := helpers.ServerErrorWrapper(ShowErrors, func() error {
+			var err error
+			if a.CheckIfChangedMap() && a.Requirements() {
+				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", true)
+			} else {
+				err = a.client.InitGame(nil, a.desc, a.nick, "", true)
+			}
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			return nil
+		}
+		a.gameState = StateWaiting
+		a.algorithm = true
 	default:
 		fmt.Println("Please enter a valid number!")
 		time.Sleep(time.Second)

@@ -62,7 +62,6 @@ func (a *App) drawBorder(p point) {
 		dy := p.y + v.y
 		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
 			continue
-
 		}
 
 		prev := a.enemyStates[dx][dy]
