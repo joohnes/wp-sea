@@ -70,7 +70,7 @@ func New(c client) *App {
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[string]string{},
-		map[string]int{},
+		make(map[string]int),
 		false,
 		TargetState,
 		"",
@@ -88,9 +88,14 @@ func (a *App) Run() error {
 	shipchannel := make(chan string)
 	//
 
+	var err error
+	err = a.LoadStatistics()
+	if err != nil {
+		logger.GetLoggerInstance().Println("couldn't load statistics")
+	}
+
 	screen.Clear()
 	screen.MoveTopLeft()
-	var err error
 	for {
 		a.nick, err = helpers.GetName()
 		if err == nil {
@@ -196,6 +201,8 @@ func (a *App) Run() error {
 				logger.GetLoggerInstance().Println(err)
 			}
 		}
+		//a.AddStatistics()
+		a.SaveStatistics()
 		a.Reset()
 	}
 }

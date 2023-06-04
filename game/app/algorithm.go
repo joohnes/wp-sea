@@ -2,14 +2,10 @@ package app
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
 	gui "github.com/grupawp/warships-gui/v2"
 	"github.com/joohnes/wp-sea/game/helpers"
-	"github.com/joohnes/wp-sea/game/logger"
 	"math/rand"
-	"os"
-	"strconv"
 	"time"
 )
 
@@ -19,55 +15,6 @@ const (
 	HuntState   Mode = "Hunt"
 	TargetState      = "Target"
 )
-
-func (a *App) LoadStatistics() {
-	f, err := os.Open("statistics.csv")
-	defer f.Close()
-	if err != nil {
-		_, err = os.Create("statistics.csv")
-		if err != nil {
-			return
-		}
-		f, err = os.Open("statistics.csv")
-		defer f.Close()
-	}
-	r := csv.NewReader(f)
-	records, err := r.ReadAll()
-	if err != nil {
-		logger.GetLoggerInstance().Println("couldn't read statistics")
-	}
-	var basemap map[string]int
-	for _, x := range records {
-		number, err := strconv.Atoi(x[1])
-		if err != nil {
-			logger.GetLoggerInstance().Printf("couldn't load %v\n", x)
-		}
-		basemap[x[0]] = number
-	}
-	a.statistics = basemap
-}
-
-func (a *App) SaveStatistics() {
-	f, err := os.Open("statistics.csv")
-	defer f.Close()
-	if err != nil {
-		_, err = os.Create("statistics.csv")
-		if err != nil {
-			return
-		}
-		f, err = os.Open("statistics.csv")
-		defer f.Close()
-	}
-
-	w := csv.NewWriter(f)
-	for coord, occurrences := range a.statistics {
-		err := w.Write([]string{coord, strconv.Itoa(occurrences)})
-		if err != nil {
-			logger.GetLoggerInstance().Printf("couldn't save %s, %d\n", coord, occurrences)
-		}
-	}
-	w.Flush()
-}
 
 func (a *App) ClosestShip(x, y int) int {
 	vec := []point{

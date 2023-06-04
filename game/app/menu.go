@@ -124,6 +124,7 @@ func PrintOptions(nick string, changed bool) {
 	}
 	t.AppendRow(table.Row{7, "Reset ship placement"})
 	t.AppendRow(table.Row{8, "Algorithm vs WPBot"})
+	t.AppendRow(table.Row{9, "Show heatmap"})
 	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
 	fmt.Print("Option: ")
@@ -363,7 +364,6 @@ Start:
 		a.algorithm = true
 	case "9":
 		a.ShowStatistics()
-		_, _ = fmt.Scanln()
 		goto Start
 	default:
 		fmt.Println("Please enter a valid number!")

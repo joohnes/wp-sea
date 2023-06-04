@@ -21,7 +21,7 @@ var (
 
 func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <-chan string, errorchan <-chan error, timeLeftchan <-chan int) {
 	// SETUP
-	ui := gui.NewGUI(true)
+	ui := gui.NewGUI(false)
 	txt := gui.NewText(Left, 1, "Press Ctrl+C to exit", nil)
 	myBoard := gui.NewBoard(Left, 6, nil)
 	enemyBoard := gui.NewBoard(Right, 6, nil)
@@ -193,7 +193,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 }
 
 func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan chan error) {
-	ui := gui.NewGUI(true)
+	ui := gui.NewGUI(false)
 	txt := gui.NewText(Left, 1, "Press Ctrl+C to exit", nil)
 	myBoard := gui.NewBoard(Left, 4, nil)
 	infoText := gui.NewText(Left, 27, "Press any field to put a ship there", nil)
