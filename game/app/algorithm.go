@@ -73,20 +73,17 @@ func (a *App) SearchShip() (x, y int) {
 			}
 		}
 		a.algorithmTried = append(a.algorithmTried, a.LastPlayerHit)
-		for _, v := range vec {
-			dx := int(coord["x"]) + v.x
-			dy := int(coord["y"]) + v.y
-			if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
-				continue
-			}
-			if a.enemyStates[dx][dy] == gui.Hit && !In(a.algorithmTried, a.LastPlayerHit) {
-				a.LastPlayerHit = helpers.AlphabeticCoords(dx, dy)
+		for _, x := range a.CheckShipPoints(int(coord["x"]), int(coord["y"])) {
+			cord := helpers.AlphabeticCoords(x.x, x.y)
+			if !In(a.algorithmTried, cord) {
+				a.LastPlayerHit = cord
 				return a.SearchShip()
 			}
 		}
 	}
 	return
 }
+
 func In(arr []string, coord string) bool {
 	for _, x := range arr {
 		if x == coord {
@@ -106,7 +103,11 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 		case <-t.C:
 			if a.gameState == StatePlayerTurn {
 				x, y := a.SearchShip()
-				coord := helpers.AlphabeticCoords(x, y)
+				var coord string
+				if a.gameState != StatePlayerTurn {
+					return
+				}
+				coord = helpers.AlphabeticCoords(x, y)
 				err := a.Shoot(coord)
 				if err != nil {
 					errorchan <- err
@@ -117,5 +118,52 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 				return
 			}
 		}
+	}
+}
+
+func (a *App) HasAlreadyBeenShot(coord string) bool {
+	for x := range a.playerShots {
+		if x == coord {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *App) CheckShipPoints(x, y int) []point {
+	var points []point
+	a.getShips(x, y, &points)
+	return points
+}
+
+func (a *App) getShips(x, y int, points *[]point) {
+	vec := []point{
+		{-1, 0},
+		{0, 1},
+		{1, 0},
+		{0, -1},
+	}
+
+	for _, i := range *points {
+		if i.x == x && i.y == y {
+			return
+		}
+	}
+	*points = append(*points, point{x, y})
+	var connections []point
+
+	for _, v := range vec {
+		dx := x + v.x
+		dy := y + v.y
+		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
+			continue
+		}
+		if a.enemyStates[dx][dy] == "Ship" {
+			connections = append(connections, point{dx, dy})
+		}
+
+	}
+	for _, c := range connections {
+		a.getShips(c.x, c.y, points)
 	}
 }
