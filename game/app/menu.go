@@ -64,6 +64,7 @@ func (a *App) ShowPlayerStats(nick string) error {
 	if err != nil {
 		return err
 	}
+
 	t := table.NewWriter()
 	t.SetTitle(fmt.Sprintf("%s's stats", nick))
 
@@ -129,10 +130,46 @@ func PrintOptions(nick string, changed, algorithm bool) {
 		red := color.New(color.FgRed).SprintFunc()
 		t.AppendRow(table.Row{8, red("Turn off Algorithm")})
 	}
-	t.AppendRow(table.Row{9, "Show heatmap"})
+	t.AppendRow(table.Row{9, "Show algorithm options"})
+	t.AppendRow(table.Row{10, "Show heatmap"})
 	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
 	fmt.Print("Option: ")
+}
+
+func (a *App) PrintAlgorithmOptions() error {
+	green := color.New(color.FgGreen).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+	for {
+		screen.Clear()
+		screen.MoveTopLeft()
+		t := table.NewWriter()
+		t.SetTitle("Algorithm options")
+		t.AppendHeader(table.Row{"#", fmt.Sprintf("Choose an option [%s/%s]", green("enabled"), red("disabled"))})
+		if a.algorithm.Loop {
+			t.AppendRow(table.Row{1, fmt.Sprintf("%s: Auto play, ctrl + c to quit", green("Loop"))})
+		} else {
+			t.AppendRow(table.Row{1, fmt.Sprintf("%s: Auto play, ctrl + c to quit", red("Loop"))})
+		}
+		t.AppendFooter(table.Row{"", "Type 'b' to go back"})
+		fmt.Println(t.Render())
+		fmt.Print("Option: ")
+		answer, err := helpers.GetAnswer(false)
+		if err != nil {
+			return err
+		}
+		switch strings.ToLower(answer) {
+		case "1":
+			a.algorithm.Loop = !a.algorithm.Loop
+			continue
+		case "b", "back":
+			return ErrBack
+		default:
+			fmt.Println("Please enter a valid number!")
+			time.Sleep(time.Second)
+			continue
+		}
+	}
 }
 
 func (a *App) ChoosePlayer() error {
@@ -282,20 +319,7 @@ func (a *App) ChoosePlayer() error {
 
 func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan chan error) error {
 	log := logger.GetLoggerInstance()
-Start:
-	screen.Clear()
-	screen.MoveTopLeft()
-	PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled)
-	answer, err := helpers.GetAnswer(false)
-	if err != nil {
-		log.Println(err)
-		goto Start
-	}
-
-	switch strings.ToLower(answer) {
-	case "q", "quit":
-		os.Exit(0)
-	case "1": // play with bot
+	if a.algorithm.Loop {
 		err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 			var err error
 			if a.CheckIfChangedMap() && a.Requirements() {
@@ -313,73 +337,104 @@ Start:
 			return err
 		}
 		a.gameState = StateWaiting
+		return nil
+	}
 
-	case "2": // play with another player
-		for {
+	for {
+		screen.Clear()
+		screen.MoveTopLeft()
+		PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled)
+		answer, err := helpers.GetAnswer(false)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		switch strings.ToLower(answer) {
+		case "q", "quit":
+			os.Exit(0)
+		case "1": // play with bot
+			err := helpers.ServerErrorWrapper(ShowErrors, func() error {
+				var err error
+				if a.CheckIfChangedMap() && a.Requirements() {
+					err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", true)
+				} else {
+					err = a.client.InitGame(nil, a.desc, a.nick, "", true)
+				}
+				if err != nil {
+					return err
+				}
+				fmt.Println("Connecting to server...")
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			a.gameState = StateWaiting
+
+		case "2": // play with another player
 			err := a.ChoosePlayer()
 			if errors.Is(err, ErrBack) {
-				goto Start
+				continue
 			}
 			if err != nil {
 				logger.GetLoggerInstance().Println(err)
+			}
+		case "3": // top10
+			err := a.ShowStats()
+			if err != nil {
+				return err
+			}
+		case "4": // stats
+			err := a.ShowPlayerStats(a.nick)
+			if err != nil {
+				return err
+			}
+
+		case "5": // specific player stats
+			fmt.Print("Enter name: ")
+			nick, err := helpers.GetAnswer(true)
+			if err != nil {
+				log.Println(err)
+				fmt.Println(err)
 				continue
 			}
-			break
-		}
-	case "3": // top10
-		err := a.ShowStats()
-		if err != nil {
-			return err
-		}
-		goto Start
-	case "4": // stats
-		err := a.ShowPlayerStats(a.nick)
-		if err != nil {
-			return err
-		}
-		goto Start
-
-	case "5": // specific player stats
-		fmt.Print("Enter name: ")
-		nick, err := helpers.GetAnswer(true)
-		if err != nil {
-			log.Println(err)
-			fmt.Println(err)
-			goto Start
-		}
-		err = a.ShowPlayerStats(nick)
-		if err != nil {
-			return err
-		}
-		goto Start
-	case "6": //set up ships
-		go a.PlaceShips(ctx, shipchannel, errChan)
-		a.SetUpShips(ctx, shipchannel, errChan)
-		goto Start
-	case "7": //reset ship placement
-		for i := range a.playerStates {
-			for j := range a.playerStates[i] {
-				a.playerStates[i][j] = ""
+			err = a.ShowPlayerStats(nick)
+			if err != nil {
+				return err
 			}
+
+		case "6": //set up ships
+			go a.PlaceShips(ctx, shipchannel, errChan)
+			a.SetUpShips(ctx, shipchannel, errChan)
+
+		case "7": //reset ship placement
+			for i := range a.playerStates {
+				for j := range a.playerStates[i] {
+					a.playerStates[i][j] = ""
+				}
+			}
+			a.placeShips = map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
+			fmt.Println("Ship placement has been reset!")
+			time.Sleep(time.Second * 2)
+
+		case "8": // turn on/off algorithm
+			a.algorithm.enabled = !a.algorithm.enabled
+
+		case "9": // algorithm options
+			err = a.PrintAlgorithmOptions()
+			if errors.Is(err, ErrBack) {
+				continue
+			}
+			if err != nil {
+				logger.GetLoggerInstance().Println(err)
+			}
+		case "10": // Show heatmap with shot statistics
+			a.ShowStatistics()
+		default:
+			fmt.Println("Please enter a valid number!")
+			time.Sleep(time.Second)
 		}
-		a.placeShips = map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
-		fmt.Println("Ship placement has been reset!")
-		time.Sleep(time.Second * 2)
-		goto Start
-	case "8": // turn on/off algorithm
-		if a.algorithm.enabled {
-			a.algorithm.enabled = false
-		} else {
-			a.algorithm.enabled = true
-		}
-		goto Start
-	case "9": // Show heatmap with shot statistics
-		a.ShowStatistics()
-		goto Start
-	default:
-		fmt.Println("Please enter a valid number!")
-		time.Sleep(time.Second)
-		goto Start
 	}
 	return nil
 }

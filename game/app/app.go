@@ -49,7 +49,6 @@ type App struct {
 	statistics    map[string]int
 	algorithm     Algorithm
 	LastPlayerHit string
-	//algorithmTried []string
 }
 
 func New(c client) *App {
@@ -73,7 +72,6 @@ func New(c client) *App {
 		make(map[string]int),
 		NewAlgorithm(),
 		"",
-		//[]string{},
 	}
 }
 
@@ -126,13 +124,14 @@ func (a *App) Run() error {
 			if a.gameState != StateStart {
 				break
 			}
-			if err.Error() == "player not found" {
-				fmt.Println("Player not found. Perhaps you did not play any games?")
+			if err.Error() == "not found" {
+				fmt.Println("Player not found.")
 				time.Sleep(2 * time.Second)
 				continue
 			}
+
 			time.Sleep(2 * time.Second)
-			fmt.Println("Server error occurred1. Please try again")
+			fmt.Println("Server error occurred. Please try again")
 		}
 		shipCancel()
 
