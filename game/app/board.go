@@ -108,10 +108,9 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	chanText.SetBgColor(gui.White)
 
 	if a.Requirements() {
-		myBoard.SetStates(a.playerStates)
-	} else {
-		myBoard.SetStates(a.myStates)
+		a.myStates = a.playerStates
 	}
+	myBoard.SetStates(a.myStates)
 	enemyBoard.SetStates(a.enemyStates)
 
 	go func() {
@@ -183,11 +182,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 				return
 			default:
 				time.Sleep(50 * time.Millisecond)
-				if a.Requirements() {
-					myBoard.SetStates(a.playerStates)
-				} else {
-					myBoard.SetStates(a.myStates)
-				}
+				myBoard.SetStates(a.myStates)
 				enemyBoard.SetStates(a.enemyStates)
 				shotsCounttxt.SetText(fmt.Sprintf("Shots: %d", a.shotsCount))
 				shotsHittxt.SetText(fmt.Sprintf("Hits: %d", a.shotsHit))
