@@ -87,14 +87,14 @@ func (a *App) Shoot(coord string) error {
 		a.shotsHit += 1
 		a.LastPlayerHit = coord
 		a.mode = HuntState
-		a.statistics[coord] += 1
+		a.statistics[strings.ToLower(coord)] += 1
 	case "sunk":
 		a.enemyStates[x][y] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
 		a.MarkBorders(x, y)
 		a.mode = TargetState
-		a.statistics[coord] += 1
+		a.statistics[strings.ToLower(coord)] += 1
 	}
 	a.playerShots[coord] = result
 	return nil
