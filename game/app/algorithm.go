@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	gui "github.com/grupawp/warships-gui/v2"
@@ -89,17 +90,21 @@ func (a *App) SearchShip() (x, y int) {
 				return dx, dy
 			}
 		}
-		for _, x := range a.CheckShipPoints(coordX, coordY) {
-			cord := helpers.AlphabeticCoords(x.x, x.y)
+		a.algorithm.tried = append(a.algorithm.tried, a.LastPlayerHit)
+		for _, v := range a.CheckShipPoints(coordX, coordY) {
+			cord := helpers.AlphabeticCoords(v.x, v.y)
 			if !In(a.algorithm.tried, cord) {
-				a.algorithm.tried = append(a.algorithm.tried, a.LastPlayerHit)
 				a.LastPlayerHit = cord
 				return a.SearchShip()
 			}
 		}
 	}
+
+	// Last backup, if everything else fails
+	// at least it won't shoot at the same tile
+	// but it shouldn't
 	for shot := range a.playerShots {
-		if shot == "a1" {
+		if strings.ToLower(shot) == "a1" {
 			for {
 				x = rand.Intn(10)
 				y = rand.Intn(10)
@@ -142,7 +147,7 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 					errorchan <- err
 				}
 				resetTime <- 1
-				textchan <- fmt.Sprintf("%s: Algorithm shot at %s", a.algorithm.mode, coord)
+				textchan <- fmt.Sprintf("%s: Algorithm shot at %s", a.algorithm.mode, strings.ToUpper(coord))
 			} else if a.gameState == StateEnded {
 				return
 			}
@@ -187,7 +192,7 @@ func (a *App) getShips(x, y int, points *[]point) {
 		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
 			continue
 		}
-		if a.enemyStates[dx][dy] == "Ship" {
+		if a.enemyStates[dx][dy] == gui.Hit {
 			connections = append(connections, point{dx, dy})
 		}
 
