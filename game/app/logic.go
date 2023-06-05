@@ -67,7 +67,7 @@ func (a *App) CheckIfWon() bool {
 }
 
 func (a *App) Shoot(coord string) error {
-	coordmap, err := helpers.NumericCords(coord)
+	x, y, err := helpers.NumericCords(coord)
 	if err != nil {
 		return err
 	}
@@ -78,21 +78,21 @@ func (a *App) Shoot(coord string) error {
 
 	switch result {
 	case "miss":
-		a.enemyStates[coordmap["x"]][coordmap["y"]] = "Miss"
+		a.enemyStates[x][y] = "Miss"
 		a.shotsCount += 1
 		a.gameState = StateOppTurn
 	case "hit":
-		a.enemyStates[coordmap["x"]][coordmap["y"]] = "Hit"
+		a.enemyStates[x][y] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
 		a.LastPlayerHit = coord
 		a.mode = HuntState
 		a.statistics[coord] += 1
 	case "sunk":
-		a.enemyStates[coordmap["x"]][coordmap["y"]] = "Hit"
+		a.enemyStates[x][y] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
-		a.MarkBorders(coordmap)
+		a.MarkBorders(x, y)
 		a.mode = TargetState
 		a.statistics[coord] += 1
 	}
@@ -106,7 +106,7 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<-
 		select {
 		case coord = <-coordchan:
 			if a.gameState == StatePlayerTurn {
-				_, err := helpers.NumericCords(coord)
+				_, _, err := helpers.NumericCords(coord)
 				if err != nil {
 					errorchan <- err
 				}
@@ -129,19 +129,19 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<-
 }
 
 func (a *App) HitOrMiss(coord string) error {
-	coordmap, err := helpers.NumericCords(coord)
+	x, y, err := helpers.NumericCords(coord)
 	if err != nil {
 		return err
 	}
 
-	state := a.myStates[coordmap["x"]][coordmap["y"]]
+	state := a.myStates[x][y]
 	switch state {
 	case "Ship":
-		a.myStates[coordmap["x"]][coordmap["y"]] = "Hit"
+		a.myStates[x][y] = "Hit"
 	case "Hit":
-		a.myStates[coordmap["x"]][coordmap["y"]] = "Hit"
+		a.myStates[x][y] = "Hit"
 	default:
-		a.myStates[coordmap["x"]][coordmap["y"]] = "Miss"
+		a.myStates[x][y] = "Miss"
 	}
 	return nil
 }
@@ -217,11 +217,11 @@ func (a *App) GetBoard() error {
 		return err
 	}
 	for _, x := range coords {
-		coordmap, err := helpers.NumericCords(x)
+		i, j, err := helpers.NumericCords(x)
 		if err != nil {
 			return err
 		}
-		a.myStates[coordmap["x"]][coordmap["y"]] = "Ship"
+		a.myStates[i][j] = "Ship"
 	}
 	return nil
 }

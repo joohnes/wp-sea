@@ -105,6 +105,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		legendMiss,
 		legendShip,
 	)
+	chanText.SetBgColor(gui.White)
 
 	if a.Requirements() {
 		myBoard.SetStates(a.playerStates)

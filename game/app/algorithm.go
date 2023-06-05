@@ -52,7 +52,7 @@ func (a *App) SearchShip() (x, y int) {
 		}
 		return
 	} else {
-		coord, err := helpers.NumericCords(a.LastPlayerHit)
+		coordX, coordY, err := helpers.NumericCords(a.LastPlayerHit)
 		if err != nil {
 			return
 		}
@@ -63,8 +63,8 @@ func (a *App) SearchShip() (x, y int) {
 			{0, -1},
 		}
 		for _, v := range vec {
-			dx := int(coord["x"]) + v.x
-			dy := int(coord["y"]) + v.y
+			dx := coordX + v.x
+			dy := coordY + v.y
 			if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
 				continue
 			}
@@ -72,7 +72,7 @@ func (a *App) SearchShip() (x, y int) {
 				return dx, dy
 			}
 		}
-		for _, x := range a.CheckShipPoints(int(coord["x"]), int(coord["y"])) {
+		for _, x := range a.CheckShipPoints(coordX, coordY) {
 			cord := helpers.AlphabeticCoords(x.x, x.y)
 			if !In(a.algorithmTried, cord) {
 				a.algorithmTried = append(a.algorithmTried, a.LastPlayerHit)

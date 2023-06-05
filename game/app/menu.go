@@ -238,13 +238,35 @@ func (a *App) ChoosePlayer() error {
 		}
 		switch strings.ToLower(answer) {
 		case "y", "yes":
-			err := helpers.ServerErrorWrapper(ShowErrors, func() error {
-				err := a.client.InitGame(nil, a.desc, a.nick, "", false)
-				if err != nil {
-					return err
-				}
-				return nil
-			})
+			// err := helpers.ServerErrorWrapper(ShowErrors, func() error {
+			// 	err := a.client.InitGame(nil, a.desc, a.nick, "", false)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	return nil
+			// })
+			// if err != nil {
+			// 	return err
+			// }
+			if a.CheckIfChangedMap() && a.Requirements() {
+				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
+					err := a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", false)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
+				fmt.Println("Connecting to server...")
+			} else {
+				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
+					err := a.client.InitGame(nil, a.desc, a.nick, "", false)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
+				fmt.Println("Connecting to server...")
+			}
 			if err != nil {
 				return err
 			}

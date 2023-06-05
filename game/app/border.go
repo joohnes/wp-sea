@@ -4,9 +4,9 @@ type point struct {
 	x, y int
 }
 
-func (a *App) MarkBorders(coordmap map[string]uint8) {
+func (a *App) MarkBorders(x, y int) {
 	var points []point
-	a.searchShips(int(coordmap["x"]), int(coordmap["y"]), &points)
+	a.searchShips(x, y, &points)
 	for _, i := range points {
 		a.drawBorder(i)
 	}

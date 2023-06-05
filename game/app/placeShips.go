@@ -35,12 +35,12 @@ func (a *App) PlaceShips(ctx context.Context, shipchannel chan string, errorchan
 	for {
 		select {
 		case coord := <-shipchannel:
-			coords, err := helpers.NumericCords(coord)
+			x, y, err := helpers.NumericCords(coord)
 			if err != nil {
 				errorchan <- err
 				break
 			}
-			err = a.ValidateShipPlacement(int(coords["x"]), int(coords["y"]))
+			err = a.ValidateShipPlacement(x, y)
 			if err != nil {
 				errorchan <- err
 			}
