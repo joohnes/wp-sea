@@ -19,12 +19,13 @@ const (
 )
 
 type Algorithm struct {
-	enabled bool
-	mode    Mode
-	tried   []string
-	shot    []string
-	Loop    bool
-	Stat    bool
+	enabled  bool
+	mode     Mode
+	tried    []string
+	shot     []string
+	statList PairList
+	Loop     bool
+	Stat     bool
 	//rest of the options
 }
 
@@ -34,6 +35,7 @@ func NewAlgorithm() Algorithm {
 		TargetState,
 		[]string{},
 		[]string{},
+		PairList{},
 		false,
 		false,
 	}
@@ -63,34 +65,38 @@ func (a *App) ClosestShip(x, y int) int {
 	return 0
 }
 
+func (a *App) getRandomCoord() (x, y int) {
+	for {
+		x = rand.Intn(10)
+		y = rand.Intn(10)
+		if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
+			break
+		}
+		return
+	}
+	return 0, 0
+}
+
 func (a *App) SearchShip() (x, y int) {
 	if a.algorithm.mode == TargetState {
 		if a.algorithm.Stat {
 			for {
-				p := a.getSortedStatistics()
-				for _, v := range p {
-					if !In(a.algorithm.shot, strings.ToLower(v.Key)) {
-						x, y, err := helpers.NumericCords(v.Key)
-						if err != nil {
-							x = rand.Intn(10)
-							y = rand.Intn(10)
-							if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
-								break
-							}
-							return x, y
-						}
-						return x, y
-					}
+				if len(a.algorithm.statList) == 0 {
+					return a.getRandomCoord()
 				}
+				for _, v := range a.algorithm.statList {
+					x, y, err := helpers.NumericCords(v.Key)
+					if err != nil {
+						return a.getRandomCoord()
+					}
+					a.algorithm.statList = a.algorithm.statList[1:]
+					return x, y
+				}
+				return a.getRandomCoord()
 			}
 		} else {
 			for {
-				x = rand.Intn(10)
-				y = rand.Intn(10)
-				if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
-					break
-				}
-				return
+				return a.getRandomCoord()
 			}
 		}
 	} else {
@@ -130,12 +136,8 @@ func (a *App) SearchShip() (x, y int) {
 	for shot := range a.playerShots {
 		if strings.ToLower(shot) == "a1" {
 			for {
-				x = rand.Intn(10)
-				y = rand.Intn(10)
-				if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
-					break
-				}
 				a.algorithm.mode = TargetState
+				return a.getRandomCoord()
 			}
 		}
 	}
@@ -153,6 +155,7 @@ func In(arr []string, coord string) bool {
 
 func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorchan chan error, resetTime chan int) {
 	t := time.NewTicker(time.Millisecond * 200)
+	a.algorithm.statList = a.getSortedStatistics()
 	defer t.Stop()
 	for {
 		select {
@@ -167,12 +170,13 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 				}
 				coord = helpers.AlphabeticCoords(x, y)
 				err := a.Shoot(coord)
-				a.algorithm.shot = append(a.algorithm.shot, strings.ToLower(coord))
 				if err != nil {
 					errorchan <- err
+				} else {
+					a.algorithm.shot = append(a.algorithm.shot, strings.ToLower(coord))
+					resetTime <- 1
+					textchan <- fmt.Sprintf("%s: Algorithm shot at %s", a.algorithm.mode, strings.ToUpper(coord))
 				}
-				resetTime <- 1
-				textchan <- fmt.Sprintf("%s: Algorithm shot at %s", a.algorithm.mode, strings.ToUpper(coord))
 			} else if a.gameState == StateEnded {
 				return
 			}

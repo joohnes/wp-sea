@@ -27,20 +27,20 @@ func (a *App) LoadStatistics() error {
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			logger.GetLoggerInstance().Println(err)
+			logger.GetLoggerInstance().Error.Println(err)
 		}
 	}(f)
 	r := csv.NewReader(f)
 	records, err := r.ReadAll()
 	if err != nil {
-		logger.GetLoggerInstance().Println("couldn't read statistics")
+		logger.GetLoggerInstance().Error.Println("couldn't read statistics")
 		return err
 	}
 	basemap := make(map[string]int)
 	for _, x := range records {
 		number, err := strconv.Atoi(x[1])
 		if err != nil {
-			logger.GetLoggerInstance().Printf("couldn't load %v\n", x)
+			logger.GetLoggerInstance().Error.Printf("couldn't load %v\n", x)
 			return err
 		}
 		basemap[x[0]] = number
@@ -52,13 +52,13 @@ func (a *App) LoadStatistics() error {
 func (a *App) SaveStatistics() {
 	f, err := os.OpenFile("statistics.csv", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
-		logger.GetLoggerInstance().Println("couldn't open")
+		logger.GetLoggerInstance().Error.Println("couldn't open")
 		return
 	}
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			logger.GetLoggerInstance().Println(err)
+			logger.GetLoggerInstance().Error.Println(err)
 		}
 	}(f)
 	w := csv.NewWriter(f)
@@ -66,7 +66,7 @@ func (a *App) SaveStatistics() {
 	for coord, occurrences := range a.statistics {
 		err := w.Write([]string{coord, strconv.Itoa(occurrences)})
 		if err != nil {
-			logger.GetLoggerInstance().Printf("couldn't save %s, %d\n", coord, occurrences)
+			logger.GetLoggerInstance().Error.Printf("couldn't save %s, %d\n", coord, occurrences)
 		}
 	}
 }

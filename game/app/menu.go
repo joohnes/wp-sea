@@ -98,7 +98,7 @@ func (a *App) WaitingRefresh() {
 		if a.gameState == StateWaiting {
 			err := a.client.Refresh()
 			if err != nil {
-				logger.GetLoggerInstance().Println(err)
+				logger.GetLoggerInstance().Error.Println(err)
 			}
 			time.Sleep(10 * time.Second)
 		} else {
@@ -186,7 +186,7 @@ func (a *App) ChoosePlayer() error {
 		var err error
 		playerlist, err = a.client.PlayerList()
 		if err != nil {
-			logger.GetLoggerInstance().Println(err)
+			logger.GetLoggerInstance().Error.Println(err)
 			return err
 		}
 		return nil
@@ -244,7 +244,7 @@ func (a *App) ChoosePlayer() error {
 		} else {
 			i, err := strconv.Atoi(answer)
 			if err != nil {
-				log.Printf("Couldn't convert %s to a number\n", answer)
+				log.Error.Printf("Couldn't convert %s to a number\n", answer)
 				fmt.Println("Please enter a valid number (1-", len(playerlist), ")")
 				goto Again
 			}
@@ -347,7 +347,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 		return nil
 	}
 
-	var Break bool = false
+	var Break = false
 	for {
 		if Break {
 			break
@@ -357,7 +357,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 		PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled)
 		answer, err := helpers.GetAnswer(false)
 		if err != nil {
-			log.Println(err)
+			log.Error.Println(err)
 			continue
 		}
 
@@ -390,7 +390,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 				continue
 			}
 			if err != nil {
-				logger.GetLoggerInstance().Println(err)
+				logger.GetLoggerInstance().Error.Println(err)
 			}
 			Break = true
 
@@ -410,7 +410,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 			fmt.Print("Enter name: ")
 			nick, err := helpers.GetAnswer(true)
 			if err != nil {
-				log.Println(err)
+				log.Error.Println(err)
 				fmt.Println(err)
 				continue
 			}
@@ -442,7 +442,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 				continue
 			}
 			if err != nil {
-				logger.GetLoggerInstance().Println(err)
+				logger.GetLoggerInstance().Error.Println(err)
 			}
 		case "10": // Show heatmap with shot statistics
 			a.ShowStatistics()

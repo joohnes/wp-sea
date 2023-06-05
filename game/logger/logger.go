@@ -11,7 +11,8 @@ import (
 
 type Logging struct {
 	filename string
-	*log.Logger
+	Info     *log.Logger
+	Error    *log.Logger
 }
 
 var logger *Logging
@@ -42,6 +43,7 @@ func createLogger(fname string) *Logging {
 
 	return &Logging{
 		filename: fname,
-		Logger:   log.New(file, "Error: ", log.Ldate|log.Ltime|log.Lshortfile),
+		Error:    log.New(file, "Error: ", log.Ldate|log.Ltime|log.Lshortfile),
+		Info:     log.New(file, "Info: ", log.Ldate|log.Ltime|log.Lshortfile),
 	}
 }

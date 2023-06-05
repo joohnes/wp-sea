@@ -76,6 +76,7 @@ func New(c client) *App {
 }
 
 func (a *App) Run() error {
+	logger.GetLoggerInstance().Info.Println("Started app")
 	// SETUP CHANNELS
 	coordchan := make(chan string)
 	textchan := make(chan string)
@@ -88,7 +89,9 @@ func (a *App) Run() error {
 	var err error
 	err = a.LoadStatistics()
 	if err != nil {
-		logger.GetLoggerInstance().Println("couldn't load statistics")
+		logger.GetLoggerInstance().Error.Println("couldn't load statistics")
+	} else {
+		logger.GetLoggerInstance().Info.Println("Loaded statistics")
 	}
 
 	screen.Clear()
@@ -98,16 +101,19 @@ func (a *App) Run() error {
 		if err == nil {
 			break
 		}
-		logger.GetLoggerInstance().Println(err)
+		logger.GetLoggerInstance().Error.Println(err)
 	}
+	logger.GetLoggerInstance().Info.Printf("Setup name: %s\n", a.nick)
 
 	for {
 		a.desc, err = helpers.GetDesc()
 		if err == nil {
 			break
 		}
-		logger.GetLoggerInstance().Println(err)
+		logger.GetLoggerInstance().Error.Println(err)
 	}
+	logger.GetLoggerInstance().Info.Printf("Setup desc: %s\n", a.desc)
+
 	for {
 		// SETUP CONTEXTS
 		playingCtx, playingCancel := context.WithCancel(context.Background())
@@ -119,7 +125,7 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			logger.GetLoggerInstance().Println(err)
+			logger.GetLoggerInstance().Error.Println(err)
 
 			if a.gameState != StateStart {
 				break
@@ -137,7 +143,9 @@ func (a *App) Run() error {
 
 		err = helpers.ServerErrorWrapper(ShowErrors, a.WaitForStart)
 		if err != nil {
-			logger.GetLoggerInstance().Println(err)
+			logger.GetLoggerInstance().Error.Println(err)
+		} else {
+			logger.GetLoggerInstance().Info.Println("Game started")
 		}
 
 		for {
@@ -151,7 +159,7 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			logger.GetLoggerInstance().Println(err)
+			logger.GetLoggerInstance().Error.Println(err)
 		}
 
 		for {
@@ -165,7 +173,7 @@ func (a *App) Run() error {
 			if err == nil {
 				break
 			}
-			logger.GetLoggerInstance().Println(err)
+			logger.GetLoggerInstance().Error.Println(err)
 		}
 
 		// SETUP GOROUTINES
@@ -197,9 +205,16 @@ func (a *App) Run() error {
 				if err == nil {
 					break
 				}
-				logger.GetLoggerInstance().Println(err)
+				logger.GetLoggerInstance().Error.Println(err)
 			}
 		}
+		var won string
+		if a.actualStatus.LastGameStatus == "win" {
+			won = a.nick
+		} else {
+			won = a.oppNick
+		}
+		logger.GetLoggerInstance().Info.Printf("Game ended, %s won", won)
 		a.SaveStatistics()
 		a.Reset()
 	}
