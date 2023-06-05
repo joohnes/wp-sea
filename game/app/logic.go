@@ -3,9 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/joohnes/wp-sea/game/logger"
 	"strings"
 	"time"
+
+	"github.com/joohnes/wp-sea/game/logger"
 
 	gui "github.com/grupawp/warships-gui/v2"
 	"github.com/joohnes/wp-sea/game/helpers"

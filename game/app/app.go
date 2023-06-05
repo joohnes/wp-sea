@@ -189,8 +189,9 @@ func (a *App) Run() error {
 				if a.gameState == StateEnded {
 					break
 				}
+
 				err = helpers.ServerErrorWrapper(true, func() error {
-					if a.gameState != StateEnded {
+					if a.actualStatus.GameStatus != "ended" {
 						return a.client.Resign()
 					} else {
 						return nil

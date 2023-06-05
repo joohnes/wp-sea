@@ -72,12 +72,24 @@ func (a *App) SearchShip() (x, y int) {
 				return dx, dy
 			}
 		}
-		a.algorithmTried = append(a.algorithmTried, a.LastPlayerHit)
 		for _, x := range a.CheckShipPoints(int(coord["x"]), int(coord["y"])) {
 			cord := helpers.AlphabeticCoords(x.x, x.y)
 			if !In(a.algorithmTried, cord) {
+				a.algorithmTried = append(a.algorithmTried, a.LastPlayerHit)
 				a.LastPlayerHit = cord
 				return a.SearchShip()
+			}
+		}
+	}
+	for shot := range a.playerShots {
+		if shot == "a1" {
+			for {
+				x = rand.Intn(10)
+				y = rand.Intn(10)
+				if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
+					break
+				}
+				a.mode = TargetState
 			}
 		}
 	}

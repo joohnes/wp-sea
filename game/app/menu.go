@@ -170,6 +170,7 @@ func (a *App) ChoosePlayer() error {
 					}
 					return nil
 				})
+				fmt.Println("Connecting to server...")
 			} else {
 				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
 					err := a.client.InitGame(nil, a.desc, a.nick, "", false)
@@ -178,6 +179,7 @@ func (a *App) ChoosePlayer() error {
 					}
 					return nil
 				})
+				fmt.Println("Connecting to server...")
 			}
 			if err != nil {
 				return err
@@ -208,6 +210,7 @@ func (a *App) ChoosePlayer() error {
 					}
 					return nil
 				})
+				fmt.Println("Connecting to server...")
 			} else {
 				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
 					err := a.client.InitGame(nil, a.desc, a.nick, playerlist[i-1]["nick"], false)
@@ -216,6 +219,7 @@ func (a *App) ChoosePlayer() error {
 					}
 					return nil
 				})
+				fmt.Println("Connecting to server...")
 			}
 			if err != nil {
 				return err
@@ -284,6 +288,7 @@ Start:
 			if err != nil {
 				return err
 			}
+			fmt.Println("Connecting to server...")
 			return nil
 		})
 		if err != nil {
@@ -354,6 +359,7 @@ Start:
 			if err != nil {
 				return err
 			}
+			fmt.Println("Connecting to server...")
 			return nil
 		})
 		if err != nil {
