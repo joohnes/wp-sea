@@ -69,12 +69,12 @@ func (a *App) getRandomCoord() (x, y int) {
 	for {
 		x = rand.Intn(10)
 		y = rand.Intn(10)
-		if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
+		if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss && !In(a.algorithm.shot, helpers.AlphabeticCoords(x, y)) {
 			break
 		}
 		return
 	}
-	return 0, 0
+	return x, y
 }
 
 func (a *App) SearchShip() (x, y int) {
@@ -95,9 +95,7 @@ func (a *App) SearchShip() (x, y int) {
 				return a.getRandomCoord()
 			}
 		} else {
-			for {
-				return a.getRandomCoord()
-			}
+			return a.getRandomCoord()
 		}
 	} else {
 		coordX, coordY, err := helpers.NumericCords(a.LastPlayerHit)
@@ -126,18 +124,6 @@ func (a *App) SearchShip() (x, y int) {
 			if !In(a.algorithm.tried, cord) {
 				a.LastPlayerHit = cord
 				return a.SearchShip()
-			}
-		}
-	}
-
-	// Last backup, if everything else fails
-	// at least it won't shoot at the same tile
-	// but it shouldn't
-	for shot := range a.playerShots {
-		if strings.ToLower(shot) == "a1" {
-			for {
-				a.algorithm.mode = TargetState
-				return a.getRandomCoord()
 			}
 		}
 	}
