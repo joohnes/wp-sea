@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joohnes/wp-sea/game/logger"
-
 	gui "github.com/grupawp/warships-gui/v2"
 	"github.com/joohnes/wp-sea/game/helpers"
 
@@ -92,7 +90,7 @@ func (a *App) Shoot(coord string) error {
 		a.enemyStates[x][y] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
-		a.MarkBorders(x, y)
+		a.MarkBorders(x, y, &a.enemyStates, true)
 		a.algorithm.mode = TargetState
 		a.statistics[strings.ToLower(coord)] += 1
 	}
@@ -283,9 +281,12 @@ func (a *App) TranslateMap() (coords []string) {
 	return
 }
 
-func (a *App) LogError(err error) {
-	logger.GetLoggerInstance().Println(err)
-	if ShowErrors {
-		fmt.Println(err)
-	}
-}
+// CheckAllShots checks all player shots and opponent shots
+// to see if they are marked on the boards
+// if not, updates the board according to the shots
+//func (a *App) CheckAllShots() {
+//	baseboard := [10][10]gui.State{}
+//
+//	// check player board
+//
+//}
