@@ -25,11 +25,6 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	txt := gui.NewText(Left, 1, "Press Ctrl+C to exit", nil)
 	myBoard := gui.NewBoard(Left, 6, nil)
 	enemyBoard := gui.NewBoard(Right, 6, nil)
-	shipsleft := gui.NewText(
-		Left,
-		4,
-		fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.enemyShips[4], a.enemyShips[3], a.enemyShips[2], a.enemyShips[1]),
-		nil)
 
 	//TEXTS
 	timer := gui.NewText(Left, 2, "Timer: ", nil)
@@ -49,14 +44,35 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	playerBoardIndicator := gui.NewText(Left, 28, "Your Board", &playerCfg)
 	enemyBoardIndicator := gui.NewText(Right, 28, "Opponent's Board", &oppCfg)
 
-	legendEmpty := gui.NewText(Right+20, 1, "~ -> Empty space", nil)
-	legendShip := gui.NewText(Right+20, 2, "S -> Ship", nil)
-	legendHit := gui.NewText(Right+20, 3, "H -> Hit", nil)
-	legendMiss := gui.NewText(Right+20, 4, "M -> Miss", nil)
+	legendEmpty := gui.NewText(28, 1, "~ -> Empty space", nil)
+	legendShip := gui.NewText(28, 2, "S -> Ship", nil)
+	legendHit := gui.NewText(28, 3, "H -> Hit", nil)
+	legendMiss := gui.NewText(28, 4, "M -> Miss", nil)
 	legendEmpty.SetBgColor(gui.Blue)
 	legendShip.SetBgColor(gui.Green)
 	legendHit.SetBgColor(gui.Red)
 	legendMiss.SetBgColor(gui.Grey)
+
+	shipsleft4 := gui.NewText(
+		Right+20,
+		1,
+		fmt.Sprintf("4 mast: %d", a.enemyShips[4]),
+		nil)
+	shipsleft3 := gui.NewText(
+		Right+20,
+		2,
+		fmt.Sprintf("3 mast: %d", a.enemyShips[3]),
+		nil)
+	shipsleft2 := gui.NewText(
+		Right+20,
+		3,
+		fmt.Sprintf("2 mast: %d", a.enemyShips[2]),
+		nil)
+	shipsleft1 := gui.NewText(
+		Right+20,
+		4,
+		fmt.Sprintf("1 mast: %d", a.enemyShips[1]),
+		nil)
 
 	DrawList := func(a ...gui.Drawable) {
 		for _, d := range a {
@@ -78,7 +94,10 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		shotsHittxt,
 		shotsCounttxt,
 		accuracytxt,
-		shipsleft,
+		shipsleft4,
+		shipsleft3,
+		shipsleft2,
+		shipsleft1,
 		playerBoardIndicator,
 		enemyBoardIndicator,
 		legendEmpty,
@@ -101,7 +120,6 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 				return
 			default:
 				char := enemyBoard.Listen(context.TODO())
-				// txt.SetText(fmt.Sprintf("Coordinate: %s", char))
 				coordchan <- char
 				ui.Log("Coordinate: %s", char)
 			}
@@ -183,7 +201,22 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 					accuracytxt.SetBgColor(gui.White)
 				}
 
-				shipsleft.SetText(fmt.Sprintf("4 mast: %d | 3 mast: %d | 2 mast: %d | 1 mast: %d", a.enemyShips[4], a.enemyShips[3], a.enemyShips[2], a.enemyShips[1]))
+				if a.enemyShips[4] == 0 {
+					shipsleft4.SetBgColor(gui.Green)
+				}
+				if a.enemyShips[3] == 0 {
+					shipsleft3.SetBgColor(gui.Green)
+				}
+				if a.enemyShips[2] == 0 {
+					shipsleft2.SetBgColor(gui.Green)
+				}
+				if a.enemyShips[1] == 0 {
+					shipsleft1.SetBgColor(gui.Green)
+				}
+				shipsleft4.SetText(fmt.Sprintf("4 mast: %d", a.enemyShips[4]))
+				shipsleft3.SetText(fmt.Sprintf("3 mast: %d", a.enemyShips[3]))
+				shipsleft2.SetText(fmt.Sprintf("2 mast: %d", a.enemyShips[2]))
+				shipsleft1.SetText(fmt.Sprintf("1 mast: %d", a.enemyShips[1]))
 			}
 		}
 	}()
