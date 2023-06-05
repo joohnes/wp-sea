@@ -71,15 +71,9 @@ func (a *App) SaveStatistics() {
 }
 
 func (a *App) ShowStatistics() {
-	var min, max int
-	for i := range a.statistics {
-		if a.statistics[i] < min {
-			min = a.statistics[i]
-		} else if a.statistics[i] > max {
-			max = a.statistics[i]
-		}
+	min := getMin(a.statistics)
+	max := getMax(a.statistics)
 
-	}
 	t := table.NewWriter()
 	t.SetTitle("Heatmap")
 	t.AppendHeader(table.Row{"#", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"})
@@ -95,6 +89,24 @@ func (a *App) ShowStatistics() {
 	fmt.Println(t.Render())
 	fmt.Println("Press enter to go back to the menu")
 	_, _ = fmt.Scanln()
+}
+
+func getMax(arr map[string]int) (max int) {
+	for i := range arr {
+		if arr[i] > max {
+			max = arr[i]
+		}
+	}
+	return
+}
+func getMin(arr map[string]int) (min int) {
+	min = 99999999 // hope its enough
+	for i := range arr {
+		if arr[i] < min {
+			min = arr[i]
+		}
+	}
+	return
 }
 
 func GetColor(x, min, max int) color.Attribute {
