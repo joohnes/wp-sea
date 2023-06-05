@@ -106,7 +106,7 @@ func (a *App) WaitingRefresh() {
 	}
 }
 
-func PrintOptions(nick string, changed bool) {
+func PrintOptions(nick string, changed, algorithm bool) {
 	t := table.NewWriter()
 	t.SetTitle(fmt.Sprintf("Nick: %s", nick))
 	t.AppendHeader(table.Row{"#", "Choose an option"})
@@ -122,7 +122,13 @@ func PrintOptions(nick string, changed bool) {
 		t.AppendRow(table.Row{6, "Set up your ships"})
 	}
 	t.AppendRow(table.Row{7, "Reset ship placement"})
-	t.AppendRow(table.Row{8, "Algorithm vs WPBot"})
+	if !algorithm {
+		green := color.New(color.FgGreen).SprintFunc()
+		t.AppendRow(table.Row{8, green("Turn on Algorithm")})
+	} else {
+		red := color.New(color.FgRed).SprintFunc()
+		t.AppendRow(table.Row{8, red("Turn off Algorithm")})
+	}
 	t.AppendRow(table.Row{9, "Show heatmap"})
 	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
@@ -238,16 +244,6 @@ func (a *App) ChoosePlayer() error {
 		}
 		switch strings.ToLower(answer) {
 		case "y", "yes":
-			// err := helpers.ServerErrorWrapper(ShowErrors, func() error {
-			// 	err := a.client.InitGame(nil, a.desc, a.nick, "", false)
-			// 	if err != nil {
-			// 		return err
-			// 	}
-			// 	return nil
-			// })
-			// if err != nil {
-			// 	return err
-			// }
 			if a.CheckIfChangedMap() && a.Requirements() {
 				err = helpers.ServerErrorWrapper(ShowErrors, func() error {
 					err := a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", false)
@@ -289,7 +285,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 Start:
 	screen.Clear()
 	screen.MoveTopLeft()
-	PrintOptions(a.nick, a.Requirements())
+	PrintOptions(a.nick, a.Requirements(), a.algorithm)
 	answer, err := helpers.GetAnswer(false)
 	if err != nil {
 		log.Println(err)
@@ -370,26 +366,14 @@ Start:
 		fmt.Println("Ship placement has been reset!")
 		time.Sleep(time.Second * 2)
 		goto Start
-	case "8":
-		err := helpers.ServerErrorWrapper(ShowErrors, func() error {
-			var err error
-			if a.CheckIfChangedMap() && a.Requirements() {
-				err = a.client.InitGame(a.TranslateMap(), a.desc, a.nick, "", true)
-			} else {
-				err = a.client.InitGame(nil, a.desc, a.nick, "", true)
-			}
-			if err != nil {
-				return err
-			}
-			fmt.Println("Connecting to server...")
-			return nil
-		})
-		if err != nil {
-			return nil
+	case "8": // turn on/off algorithm
+		if a.algorithm {
+			a.algorithm = false
+		} else {
+			a.algorithm = true
 		}
-		a.gameState = StateWaiting
-		a.algorithm = true
-	case "9":
+		goto Start
+	case "9": // Show heatmap with shot statistics
 		a.ShowStatistics()
 		goto Start
 	default:
