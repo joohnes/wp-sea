@@ -30,27 +30,26 @@ type client interface {
 }
 
 type App struct {
-	client         client
-	nick           string
-	desc           string
-	oppShots       []string
-	oppNick        string
-	oppDesc        string
-	shotsCount     int
-	shotsHit       int
-	myStates       [10][10]gui.State
-	playerStates   [10][10]gui.State
-	enemyStates    [10][10]gui.State
-	gameState      int
-	actualStatus   StatusResponse
-	enemyShips     map[int]int
-	placeShips     map[int]int
-	playerShots    map[string]string
-	statistics     map[string]int
-	algorithm      bool
-	mode           Mode
-	LastPlayerHit  string
-	algorithmTried []string
+	client        client
+	nick          string
+	desc          string
+	oppShots      []string
+	oppNick       string
+	oppDesc       string
+	shotsCount    int
+	shotsHit      int
+	myStates      [10][10]gui.State
+	playerStates  [10][10]gui.State
+	enemyStates   [10][10]gui.State
+	gameState     int
+	actualStatus  StatusResponse
+	enemyShips    map[int]int
+	placeShips    map[int]int
+	playerShots   map[string]string
+	statistics    map[string]int
+	algorithm     Algorithm
+	LastPlayerHit string
+	//algorithmTried []string
 }
 
 func New(c client) *App {
@@ -72,10 +71,9 @@ func New(c client) *App {
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[string]string{},
 		make(map[string]int),
-		false,
-		TargetState,
+		NewAlgorithm(),
 		"",
-		[]string{},
+		//[]string{},
 	}
 }
 
@@ -174,7 +172,7 @@ func (a *App) Run() error {
 		// SETUP GOROUTINES
 		go a.CheckStatus(playingCtx, playingCancel, textchan)
 		go a.OpponentShots(playingCtx, errorchan)
-		if !a.algorithm {
+		if !a.algorithm.enabled {
 			go a.Play(playingCtx, coordchan, textchan, errorchan, resetTimerchan)
 		} else {
 			go a.AlgorithmPlay(playingCtx, textchan, errorchan, resetTimerchan)

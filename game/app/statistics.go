@@ -23,7 +23,12 @@ func (a *App) LoadStatistics() error {
 			return err
 		}
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			logger.GetLoggerInstance().Println(err)
+		}
+	}(f)
 	r := csv.NewReader(f)
 	records, err := r.ReadAll()
 	if err != nil {
@@ -49,7 +54,12 @@ func (a *App) SaveStatistics() {
 		logger.GetLoggerInstance().Println("couldn't open")
 		return
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			logger.GetLoggerInstance().Println(err)
+		}
+	}(f)
 	w := csv.NewWriter(f)
 	defer w.Flush()
 	for coord, occurrences := range a.statistics {

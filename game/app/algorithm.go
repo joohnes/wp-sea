@@ -17,6 +17,23 @@ const (
 	TargetState Mode = "Target"
 )
 
+type Algorithm struct {
+	enabled bool
+	mode    Mode
+	Loop    bool
+	tried   []string
+	//rest of the options
+}
+
+func NewAlgorithm() Algorithm {
+	return Algorithm{
+		false,
+		TargetState,
+		false,
+		[]string{},
+	}
+}
+
 func (a *App) ClosestShip(x, y int) int {
 	vec := []point{
 		{-1, 0},
@@ -42,7 +59,7 @@ func (a *App) ClosestShip(x, y int) int {
 }
 
 func (a *App) SearchShip() (x, y int) {
-	if a.mode == TargetState {
+	if a.algorithm.mode == TargetState {
 		for {
 			x = rand.Intn(10)
 			y = rand.Intn(10)
@@ -74,8 +91,8 @@ func (a *App) SearchShip() (x, y int) {
 		}
 		for _, x := range a.CheckShipPoints(coordX, coordY) {
 			cord := helpers.AlphabeticCoords(x.x, x.y)
-			if !In(a.algorithmTried, cord) {
-				a.algorithmTried = append(a.algorithmTried, a.LastPlayerHit)
+			if !In(a.algorithm.tried, cord) {
+				a.algorithm.tried = append(a.algorithm.tried, a.LastPlayerHit)
 				a.LastPlayerHit = cord
 				return a.SearchShip()
 			}
@@ -89,7 +106,7 @@ func (a *App) SearchShip() (x, y int) {
 				if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
 					break
 				}
-				a.mode = TargetState
+				a.algorithm.mode = TargetState
 			}
 		}
 	}
@@ -125,7 +142,7 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 					errorchan <- err
 				}
 				resetTime <- 1
-				textchan <- fmt.Sprintf("%s: Algorithm shot at %s", a.mode, coord)
+				textchan <- fmt.Sprintf("%s: Algorithm shot at %s", a.algorithm.mode, coord)
 			} else if a.gameState == StateEnded {
 				return
 			}

@@ -285,7 +285,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 Start:
 	screen.Clear()
 	screen.MoveTopLeft()
-	PrintOptions(a.nick, a.Requirements(), a.algorithm)
+	PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled)
 	answer, err := helpers.GetAnswer(false)
 	if err != nil {
 		log.Println(err)
@@ -367,10 +367,10 @@ Start:
 		time.Sleep(time.Second * 2)
 		goto Start
 	case "8": // turn on/off algorithm
-		if a.algorithm {
-			a.algorithm = false
+		if a.algorithm.enabled {
+			a.algorithm.enabled = false
 		} else {
-			a.algorithm = true
+			a.algorithm.enabled = true
 		}
 		goto Start
 	case "9": // Show heatmap with shot statistics

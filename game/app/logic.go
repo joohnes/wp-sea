@@ -86,14 +86,14 @@ func (a *App) Shoot(coord string) error {
 		a.shotsCount += 1
 		a.shotsHit += 1
 		a.LastPlayerHit = coord
-		a.mode = HuntState
+		a.algorithm.mode = HuntState
 		a.statistics[strings.ToLower(coord)] += 1
 	case "sunk":
 		a.enemyStates[x][y] = "Hit"
 		a.shotsCount += 1
 		a.shotsHit += 1
 		a.MarkBorders(x, y)
-		a.mode = TargetState
+		a.algorithm.mode = TargetState
 		a.statistics[strings.ToLower(coord)] += 1
 	}
 	a.playerShots[coord] = result
@@ -264,10 +264,10 @@ func (a *App) Reset() {
 	a.gameState = StateStart
 	a.enemyShips = map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
 	a.playerShots = map[string]string{}
-	a.mode = TargetState
+	a.algorithm.mode = TargetState
 	a.LastPlayerHit = ""
-	a.algorithm = false
-	a.algorithmTried = []string{}
+	//a.algorithm.enabled = false
+	a.algorithm.tried = []string{}
 	a.client.ResetToken()
 }
 
