@@ -96,10 +96,10 @@ func GetColor(x, min, max int) color.Attribute {
 	colors := []color.Attribute{
 		color.FgHiGreen,
 		color.FgGreen,
-		color.FgYellow,
 		color.FgHiYellow,
-		color.FgRed,
+		color.FgHiYellow,
 		color.FgHiRed,
+		color.FgRed,
 	}
 	basemap = append(basemap, min)
 	for i := 0; i < 5; i++ {
