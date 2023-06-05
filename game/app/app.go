@@ -3,8 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/joohnes/wp-sea/game/logger"
 	"time"
+
+	"github.com/joohnes/wp-sea/game/logger"
 
 	gui "github.com/grupawp/warships-gui/v2"
 	"github.com/inancgumus/screen"
@@ -201,7 +202,6 @@ func (a *App) Run() error {
 				logger.GetLoggerInstance().Println(err)
 			}
 		}
-		//a.AddStatistics()
 		a.SaveStatistics()
 		a.Reset()
 	}

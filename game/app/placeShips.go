@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+
 	"github.com/joohnes/wp-sea/game/helpers"
 )
 
@@ -42,7 +43,6 @@ func (a *App) PlaceShips(ctx context.Context, shipchannel chan string, errorchan
 			err = a.ValidateShipPlacement(int(coords["x"]), int(coords["y"]))
 			if err != nil {
 				errorchan <- err
-				break
 			}
 
 		case <-ctx.Done():
@@ -185,9 +185,8 @@ func (a *App) CheckAllShipsLength() {
 				}
 				points := a.CheckShipLength(i, j)
 				basemap[len(points)]--
-				for _, point := range points {
-					checked = append(checked, point)
-				}
+				checked = append(checked, points...)
+
 			}
 		}
 	}

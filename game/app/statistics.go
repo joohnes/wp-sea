@@ -3,24 +3,27 @@ package app
 import (
 	"encoding/csv"
 	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/joohnes/wp-sea/game/logger"
-	"os"
-	"strconv"
 )
 
 func (a *App) LoadStatistics() error {
 	f, err := os.Open("statistics.csv")
-	defer f.Close()
 	if err != nil {
 		_, err = os.Create("statistics.csv")
 		if err != nil {
 			return err
 		}
 		f, err = os.Open("statistics.csv")
-		defer f.Close()
+		if err != nil {
+			return err
+		}
 	}
+	defer f.Close()
 	r := csv.NewReader(f)
 	records, err := r.ReadAll()
 	if err != nil {
@@ -41,12 +44,12 @@ func (a *App) LoadStatistics() error {
 }
 
 func (a *App) SaveStatistics() {
-	f, err := os.OpenFile("statistics.csv", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 777)
-	defer f.Close()
+	f, err := os.OpenFile("statistics.csv", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
-		logger.GetLoggerInstance().Println("couldn't open'")
+		logger.GetLoggerInstance().Println("couldn't open")
 		return
 	}
+	defer f.Close()
 	w := csv.NewWriter(f)
 	defer w.Flush()
 	for coord, occurrences := range a.statistics {
@@ -82,7 +85,6 @@ func (a *App) ShowStatistics() {
 	fmt.Println(t.Render())
 	fmt.Println("Press enter to go back to the menu")
 	_, _ = fmt.Scanln()
-	return
 }
 
 func GetColor(x, min, max int) color.Attribute {

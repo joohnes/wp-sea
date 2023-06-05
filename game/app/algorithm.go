@@ -3,17 +3,18 @@ package app
 import (
 	"context"
 	"fmt"
-	gui "github.com/grupawp/warships-gui/v2"
-	"github.com/joohnes/wp-sea/game/helpers"
 	"math/rand"
 	"time"
+
+	gui "github.com/grupawp/warships-gui/v2"
+	"github.com/joohnes/wp-sea/game/helpers"
 )
 
 type Mode string
 
 const (
 	HuntState   Mode = "Hunt"
-	TargetState      = "Target"
+	TargetState Mode = "Target"
 )
 
 func (a *App) ClosestShip(x, y int) int {

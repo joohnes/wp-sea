@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/fatih/color"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 
 	"github.com/inancgumus/screen"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -83,12 +84,10 @@ func (a *App) WaitingTimer() {
 		if a.gameState != StateWaiting {
 			return
 		}
-		select {
-		case <-t.C:
-			fmt.Print("\033[u\033[K")
-			fmt.Printf("Waiting [%v seconds]", dur)
-			dur++
-		}
+		<-t.C
+		fmt.Print("\033[u\033[K")
+		fmt.Printf("Waiting [%v seconds]", dur)
+		dur++
 	}
 }
 
