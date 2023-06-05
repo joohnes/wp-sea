@@ -169,6 +169,7 @@ func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textch
 					textchan <- "You have lost the game!"
 				}
 				time.Sleep(5 * time.Second)
+				textchan <- "color reset"
 				cancel()
 			}
 

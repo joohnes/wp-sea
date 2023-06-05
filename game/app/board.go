@@ -105,7 +105,6 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		legendMiss,
 		legendShip,
 	)
-	chanText.SetBgColor(gui.White)
 
 	if a.Requirements() {
 		a.myStates = a.playerStates
@@ -132,6 +131,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		for {
 			select {
 			case <-ctx.Done():
+				chanText.SetBgColor(gui.White)
 				return
 			case text := <-textchan:
 				chanText.SetText(text)
@@ -139,6 +139,8 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 					chanText.SetBgColor(gui.Green)
 				} else if text == "You have lost the game!" {
 					chanText.SetBgColor(gui.Red)
+				} else if text == "color reset" {
+					chanText.SetBgColor(gui.White)
 				}
 
 			case err := <-errorchan:
@@ -218,7 +220,6 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 	}()
 
 	ui.Start(ctx, nil)
-
 }
 
 func (a *App) SetUpShips(ctx context.Context, shipchannel chan string, errorchan chan error) {
