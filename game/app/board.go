@@ -131,7 +131,6 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		for {
 			select {
 			case <-ctx.Done():
-				chanText.SetBgColor(gui.White)
 				return
 			case text := <-textchan:
 				chanText.SetText(text)
