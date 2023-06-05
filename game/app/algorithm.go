@@ -21,8 +21,10 @@ const (
 type Algorithm struct {
 	enabled bool
 	mode    Mode
-	Loop    bool
 	tried   []string
+	shot    []string
+	Loop    bool
+	Stat    bool
 	//rest of the options
 }
 
@@ -30,8 +32,10 @@ func NewAlgorithm() Algorithm {
 	return Algorithm{
 		false,
 		TargetState,
-		false,
 		[]string{},
+		[]string{},
+		false,
+		false,
 	}
 }
 
@@ -61,14 +65,34 @@ func (a *App) ClosestShip(x, y int) int {
 
 func (a *App) SearchShip() (x, y int) {
 	if a.algorithm.mode == TargetState {
-		for {
-			x = rand.Intn(10)
-			y = rand.Intn(10)
-			if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
-				break
+		if a.algorithm.Stat {
+			for {
+				p := a.getSortedStatistics()
+				for _, v := range p {
+					if !In(a.algorithm.shot, strings.ToLower(v.Key)) {
+						x, y, err := helpers.NumericCords(v.Key)
+						if err != nil {
+							x = rand.Intn(10)
+							y = rand.Intn(10)
+							if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
+								break
+							}
+							return x, y
+						}
+						return x, y
+					}
+				}
+			}
+		} else {
+			for {
+				x = rand.Intn(10)
+				y = rand.Intn(10)
+				if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss {
+					break
+				}
+				return
 			}
 		}
-		return
 	} else {
 		coordX, coordY, err := helpers.NumericCords(a.LastPlayerHit)
 		if err != nil {
@@ -143,6 +167,7 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 				}
 				coord = helpers.AlphabeticCoords(x, y)
 				err := a.Shoot(coord)
+				a.algorithm.shot = append(a.algorithm.shot, strings.ToLower(coord))
 				if err != nil {
 					errorchan <- err
 				}

@@ -18,15 +18,15 @@ import (
 )
 
 type Pair struct {
-	Key    string
-	Values []int
+	Key   string
+	Value int
 }
 
 type PairList []Pair
 
 func (p PairList) Len() int           { return len(p) }
 func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p PairList) Less(i, j int) bool { return p[i].Values[1] < p[j].Values[1] }
+func (p PairList) Less(i, j int) bool { return p[i].Value < p[j].Value }
 
 var ErrBack = errors.New("back")
 
@@ -46,7 +46,7 @@ func (a *App) ShowStats() error {
 
 	t := table.NewWriter()
 	t.SetTitle("Stats")
-	t.SortBy([]table.SortBy{{Name: "Points", Mode: table.DscNumeric}})
+	t.SortBy([]table.SortBy{{Name: "Rank", Mode: table.AscNumeric}})
 
 	t.AppendHeader(table.Row{"#", "Nick", "Games", "Points", "Rank", "Wins"})
 	counter := 1
@@ -151,6 +151,11 @@ func (a *App) PrintAlgorithmOptions() error {
 		} else {
 			t.AppendRow(table.Row{1, fmt.Sprintf("%s: Auto play, ctrl + c to quit", red("Loop"))})
 		}
+		if a.algorithm.Stat {
+			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Uses statistics to shot", green("Stat"))})
+		} else {
+			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Uses statistics to shot", red("Stat"))})
+		}
 		t.AppendFooter(table.Row{"", "Type 'b' to go back"})
 		fmt.Println(t.Render())
 		fmt.Print("Option: ")
@@ -162,6 +167,8 @@ func (a *App) PrintAlgorithmOptions() error {
 		case "1":
 			a.algorithm.Loop = !a.algorithm.Loop
 			continue
+		case "2":
+			a.algorithm.Stat = !a.algorithm.Stat
 		case "b", "back":
 			return ErrBack
 		default:
@@ -340,7 +347,11 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 		return nil
 	}
 
+	var Break bool = false
 	for {
+		if Break {
+			break
+		}
 		screen.Clear()
 		screen.MoveTopLeft()
 		PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled)
@@ -371,6 +382,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 				return err
 			}
 			a.gameState = StateWaiting
+			Break = true
 
 		case "2": // play with another player
 			err := a.ChoosePlayer()
@@ -380,11 +392,14 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 			if err != nil {
 				logger.GetLoggerInstance().Println(err)
 			}
+			Break = true
+
 		case "3": // top10
 			err := a.ShowStats()
 			if err != nil {
 				return err
 			}
+
 		case "4": // stats
 			err := a.ShowPlayerStats(a.nick)
 			if err != nil {

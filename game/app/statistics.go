@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 
 	"github.com/fatih/color"
@@ -99,6 +100,7 @@ func getMax(arr map[string]int) (max int) {
 	}
 	return
 }
+
 func getMin(arr map[string]int) (min int) {
 	min = 99999999 // hope its enough
 	for i := range arr {
@@ -133,4 +135,16 @@ func GetColor(x, min, max int) color.Attribute {
 		}
 	}
 	return colors[len(colors)-1]
+}
+
+func (a *App) getSortedStatistics() PairList {
+	p := make(PairList, 100)
+
+	i := 0
+	for k, v := range a.statistics {
+		p[i] = Pair{Key: k, Value: v}
+		i++
+	}
+	sort.Sort(sort.Reverse(p))
+	return p
 }
