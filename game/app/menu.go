@@ -146,12 +146,12 @@ func (a *App) PrintAlgorithmOptions() error {
 		t := table.NewWriter()
 		t.SetTitle("Algorithm options")
 		t.AppendHeader(table.Row{"#", fmt.Sprintf("Choose an option [%s/%s]", green("enabled"), red("disabled"))})
-		if a.algorithm.Loop {
+		if a.algorithm.options.Loop {
 			t.AppendRow(table.Row{1, fmt.Sprintf("%s: Auto play, ctrl + c to quit", green("Loop"))})
 		} else {
 			t.AppendRow(table.Row{1, fmt.Sprintf("%s: Auto play, ctrl + c to quit", red("Loop"))})
 		}
-		if a.algorithm.Stat {
+		if a.algorithm.options.Stats {
 			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Uses statistics to shot", green("Stat"))})
 		} else {
 			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Uses statistics to shot", red("Stat"))})
@@ -165,10 +165,10 @@ func (a *App) PrintAlgorithmOptions() error {
 		}
 		switch strings.ToLower(answer) {
 		case "1":
-			a.algorithm.Loop = !a.algorithm.Loop
+			a.algorithm.options.Loop = !a.algorithm.options.Loop
 			continue
 		case "2":
-			a.algorithm.Stat = !a.algorithm.Stat
+			a.algorithm.options.Stats = !a.algorithm.options.Stats
 		case "b", "back":
 			return ErrBack
 		default:
@@ -326,7 +326,7 @@ func (a *App) ChoosePlayer() error {
 
 func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan chan error) error {
 	log := logger.GetLoggerInstance()
-	if a.algorithm.Loop {
+	if a.algorithm.options.Loop {
 		err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 			var err error
 			if a.CheckIfChangedMap() && a.Requirements() {

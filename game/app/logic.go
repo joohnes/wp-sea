@@ -265,8 +265,9 @@ func (a *App) Reset() {
 	a.playerShots = map[string]string{}
 	a.algorithm.mode = TargetState
 	a.LastPlayerHit = ""
-	//a.algorithm.enabled = false
+	a.algorithm.shot = []string{}
 	a.algorithm.tried = []string{}
+	a.algorithm.statList = PairList{}
 	a.client.ResetToken()
 }
 

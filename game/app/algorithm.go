@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/joohnes/wp-sea/game/logger"
 	"math/rand"
 	"strings"
 	"time"
@@ -24,9 +25,12 @@ type Algorithm struct {
 	tried    []string
 	shot     []string
 	statList PairList
-	Loop     bool
-	Stat     bool
-	//rest of the options
+	options  Options
+}
+
+type Options struct {
+	Loop  bool
+	Stats bool
 }
 
 func NewAlgorithm() Algorithm {
@@ -36,8 +40,10 @@ func NewAlgorithm() Algorithm {
 		[]string{},
 		[]string{},
 		PairList{},
-		false,
-		false,
+		Options{
+			false,
+			false,
+		},
 	}
 }
 
@@ -79,25 +85,22 @@ func (a *App) getRandomCoord() (x, y int) {
 
 func (a *App) SearchShip() (x, y int) {
 	if a.algorithm.mode == TargetState {
-		if a.algorithm.Stat {
-			for {
-				if len(a.algorithm.statList) == 0 {
+		if a.algorithm.options.Stats {
+			for _, v := range a.algorithm.statList {
+				x, y, err := helpers.NumericCords(v.Key)
+				if err != nil {
 					return a.getRandomCoord()
 				}
-				for _, v := range a.algorithm.statList {
-					x, y, err := helpers.NumericCords(v.Key)
-					if err != nil {
-						return a.getRandomCoord()
-					}
-					a.algorithm.statList = a.algorithm.statList[1:]
-					return x, y
+				a.algorithm.statList = a.algorithm.statList[1:]
+				if a.HasAlreadyBeenShot(helpers.AlphabeticCoords(x, y)) {
+					continue
 				}
-				return a.getRandomCoord()
+				return x, y
 			}
 		} else {
 			return a.getRandomCoord()
 		}
-	} else {
+	} else if a.algorithm.mode == HuntState {
 		coordX, coordY, err := helpers.NumericCords(a.LastPlayerHit)
 		if err != nil {
 			return
@@ -127,7 +130,7 @@ func (a *App) SearchShip() (x, y int) {
 			}
 		}
 	}
-	return
+	return a.getRandomCoord()
 }
 
 func In(arr []string, coord string) bool {
@@ -151,9 +154,6 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 			if a.gameState == StatePlayerTurn {
 				x, y := a.SearchShip()
 				var coord string
-				if a.gameState != StatePlayerTurn {
-					return
-				}
 				coord = helpers.AlphabeticCoords(x, y)
 				err := a.Shoot(coord)
 				if err != nil {
@@ -171,10 +171,13 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 }
 
 func (a *App) HasAlreadyBeenShot(coord string) bool {
-	for x := range a.playerShots {
-		if x == coord {
-			return true
-		}
+	coordX, coordY, err := helpers.NumericCords(coord)
+	if err != nil {
+		logger.GetLoggerInstance().Error.Println("couldn't convert coords")
+		return false
+	}
+	if a.enemyStates[coordX][coordY] == gui.Hit || a.enemyStates[coordX][coordY] == gui.Miss {
+		return true
 	}
 	return false
 }
