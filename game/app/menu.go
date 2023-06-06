@@ -153,8 +153,17 @@ func (a *App) PrintAlgorithmOptions() error {
 		}
 		if a.algorithm.options.Stats {
 			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Uses statistics to shot", green("Stat"))})
+			t.AppendRow(table.Row{"", "at the most common spot for ship to be in"})
 		} else {
 			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Uses statistics to shot", red("Stat"))})
+			t.AppendRow(table.Row{"", "at the most common spot for ship to be in"})
+		}
+		if a.algorithm.options.Density {
+			t.AppendRow(table.Row{3, fmt.Sprintf("%s: Uses density map to shot", green("Density"))})
+			t.AppendRow(table.Row{"", "where there may be the most remaining ships"})
+		} else {
+			t.AppendRow(table.Row{3, fmt.Sprintf("%s: Uses density map to shot", red("Density"))})
+			t.AppendRow(table.Row{"", "where there may be the most remaining ships"})
 		}
 		t.AppendFooter(table.Row{"", "Type 'b' to go back"})
 		fmt.Println(t.Render())
@@ -169,6 +178,10 @@ func (a *App) PrintAlgorithmOptions() error {
 			continue
 		case "2":
 			a.algorithm.options.Stats = !a.algorithm.options.Stats
+			a.algorithm.options.Density = false
+		case "3":
+			a.algorithm.options.Stats = false
+			a.algorithm.options.Density = !a.algorithm.options.Density
 		case "b", "back":
 			return ErrBack
 		default:

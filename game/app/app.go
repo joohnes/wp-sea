@@ -46,6 +46,7 @@ type App struct {
 	enemyShips    map[int]int
 	placeShips    map[int]int
 	playerShots   map[string]string
+	turn          int
 	statistics    map[string]int
 	algorithm     Algorithm
 	LastPlayerHit string
@@ -69,6 +70,7 @@ func New(c client) *App {
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[string]string{},
+		0,
 		make(map[string]int),
 		NewAlgorithm(),
 		"",

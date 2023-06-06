@@ -15,23 +15,32 @@ import (
 type Mode string
 
 const (
-	HuntState   Mode = "Hunt"
-	TargetState Mode = "Target"
+	HuntState    Mode = "HUNT"
+	TargetState  Mode = "TARGET"
+	DensityState Mode = "DENSITY"
 )
 
 type Algorithm struct {
-	enabled  bool
-	mode     Mode
-	tried    []string
-	shot     []string
-	statList PairList
-	options  Options
+	enabled       bool
+	mode          Mode
+	tried         []string
+	shot          []string
+	statList      PairList
+	densityMap    [10][10]int
+	predictedShot string
+	options       Options
 }
 
 type Options struct {
-	Loop  bool
-	Stats bool
+	Loop    bool
+	Stats   bool
+	Density bool
 }
+
+/*
+	This algorithm was created with the help of the article:
+	http://www.datagenetics.com/blog/december32011/
+*/
 
 func NewAlgorithm() Algorithm {
 	return Algorithm{
@@ -40,7 +49,10 @@ func NewAlgorithm() Algorithm {
 		[]string{},
 		[]string{},
 		PairList{},
+		[10][10]int{},
+		"",
 		Options{
+			false,
 			false,
 			false,
 		},
@@ -85,50 +97,11 @@ func (a *App) getRandomCoord() (x, y int) {
 
 func (a *App) SearchShip() (x, y int) {
 	if a.algorithm.mode == TargetState {
-		if a.algorithm.options.Stats {
-			for _, v := range a.algorithm.statList {
-				x, y, err := helpers.NumericCords(v.Key)
-				if err != nil {
-					return a.getRandomCoord()
-				}
-				a.algorithm.statList = a.algorithm.statList[1:]
-				if a.HasAlreadyBeenShot(helpers.AlphabeticCoords(x, y)) {
-					continue
-				}
-				return x, y
-			}
-		} else {
-			return a.getRandomCoord()
-		}
+		return a.getTargetCoords()
+	} else if a.algorithm.mode == DensityState {
+		return a.getDensityCoords()
 	} else if a.algorithm.mode == HuntState {
-		coordX, coordY, err := helpers.NumericCords(a.LastPlayerHit)
-		if err != nil {
-			return
-		}
-		vec := []point{
-			{-1, 0},
-			{0, 1},
-			{1, 0},
-			{0, -1},
-		}
-		for _, v := range vec {
-			dx := coordX + v.x
-			dy := coordY + v.y
-			if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
-				continue
-			}
-			if a.enemyStates[dx][dy] != gui.Hit && a.enemyStates[dx][dy] != gui.Miss {
-				return dx, dy
-			}
-		}
-		a.algorithm.tried = append(a.algorithm.tried, a.LastPlayerHit)
-		for _, v := range a.CheckShipPoints(coordX, coordY) {
-			cord := helpers.AlphabeticCoords(v.x, v.y)
-			if !In(a.algorithm.tried, cord) {
-				a.LastPlayerHit = cord
-				return a.SearchShip()
-			}
-		}
+		return a.getHuntCoords()
 	}
 	return a.getRandomCoord()
 }
@@ -218,4 +191,237 @@ func (a *App) getShips(x, y int, points *[]point) {
 	for _, c := range connections {
 		a.getShips(c.x, c.y, points)
 	}
+}
+
+func (a *App) getTargetCoords() (x, y int) {
+	if a.algorithm.options.Stats {
+		for _, v := range a.algorithm.statList {
+			x, y, err := helpers.NumericCords(v.Key)
+			if err != nil {
+				return a.getRandomCoord()
+			}
+			a.algorithm.statList = a.algorithm.statList[1:]
+			if a.HasAlreadyBeenShot(helpers.AlphabeticCoords(x, y)) {
+				continue
+			}
+			return x, y
+		}
+	}
+	return a.getRandomCoord()
+}
+
+func (a *App) getHuntCoords() (x, y int) {
+	coordX, coordY, err := helpers.NumericCords(a.LastPlayerHit)
+	if err != nil {
+		return
+	}
+	vec := []point{
+		{-1, 0},
+		{0, 1},
+		{1, 0},
+		{0, -1},
+	}
+	for _, v := range vec {
+		dx := coordX + v.x
+		dy := coordY + v.y
+		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
+			continue
+		}
+		if a.enemyStates[dx][dy] != gui.Hit && a.enemyStates[dx][dy] != gui.Miss {
+			return dx, dy
+		}
+	}
+	a.algorithm.tried = append(a.algorithm.tried, a.LastPlayerHit)
+	for _, v := range a.CheckShipPoints(coordX, coordY) {
+		cord := helpers.AlphabeticCoords(v.x, v.y)
+		if !In(a.algorithm.tried, cord) {
+			a.LastPlayerHit = cord
+			return a.SearchShip()
+		}
+	}
+	return a.getRandomCoord()
+}
+
+func (a *App) getDensityCoords() (x, y int) {
+	densityMap := [10][10]int{}
+	for i := range a.enemyStates {
+		for j, v := range a.enemyStates[i] {
+			if v != gui.Hit && v != gui.Miss {
+				for _, shape := range shapes {
+					if a.enemyShips[len(shape)+1] == 0 {
+						continue
+					}
+					if a.DoesShapeFit(i, j, shape) {
+						for _, c := range shape {
+							dx := i + c.x
+							dy := j + c.y
+							densityMap[dx][dy] += 1
+						}
+					}
+				}
+			}
+		}
+	}
+	a.algorithm.densityMap = densityMap
+	var maxX, maxY, number int
+	for i := range densityMap {
+		for j := range densityMap[i] {
+			if c := densityMap[i][j]; c > number {
+				number = c
+				maxX = i
+				maxY = j
+			}
+		}
+	}
+	if !In(a.algorithm.shot, helpers.AlphabeticCoords(maxX, maxY)) {
+		return maxX, maxY
+	}
+	return a.getRandomCoord()
+}
+
+func (a *App) DoesShapeFit(x, y int, shape []point) bool {
+	for _, c := range shape {
+		dx := x + c.x
+		dy := y + c.y
+		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 || a.enemyStates[dx][dy] == gui.Hit || a.enemyStates[dx][dy] == gui.Miss {
+			return false
+		}
+		//if a.enemyStates[dx][dy] != gui.Empty {
+		//	return false
+		//}
+	}
+	return true
+}
+
+var shapes = [][]point{
+	{
+		{0, 1}, // #
+		{1, 1}, // ##
+		{1, 2}, //  #
+	},
+	{
+		{0, 1},  //  #
+		{-1, 1}, // ##
+		{-1, 2}, // #
+	},
+	{
+		{1, 0}, // ##
+		{1, 1}, //  ##
+		{2, 1}, //
+	},
+	{
+		{1, 0},  //  ##
+		{0, 1},  // ##
+		{-1, 1}, //
+	},
+	{
+		{1, 0}, // ##
+		{0, 1}, // ##
+		{1, 1}, //
+	},
+	{
+		{1, 0}, // horizontal straight
+		{2, 0},
+		{3, 0},
+	},
+	{
+		{0, 1}, // vertical straight
+		{0, 2},
+		{0, 3},
+	},
+	{
+		{0, 1}, // #
+		{0, 2}, // #
+		{1, 2}, // ##
+	},
+	{
+		{0, 1},  //  #
+		{0, 2},  //  #
+		{-1, 2}, // ##
+	},
+	//{
+	//	{1, 0},  //  #   WE HAVE TO DO ANOTHER CHECK
+	//	{1, -1}, //  #   BUT FROM DIFFERENT SIDE
+	//	{1, -2}, // ##   THIS ONE IS FROM LEFT DOWN
+	//},
+	{
+		{1, 0}, // ##
+		{1, 1}, //  #
+		{1, 2}, //  #
+	},
+	{
+		{1, 0}, // ##
+		{0, 1}, // #
+		{0, 2}, // #
+	},
+	{
+		{0, 1}, // #
+		{1, 1}, // ###
+		{2, 1},
+	},
+	{
+		{1, 0}, // ###
+		{2, 0}, // #
+		{0, 1},
+	},
+	{
+		{0, 1},  //   #
+		{-1, 1}, // ###
+		{-2, 1},
+	},
+	//{
+	//	{1, 0}, //   #   SAME SITUATION HERE
+	//	{2, 0}, // ###   LEFT DOWN
+	//	{2, -1},
+	//},
+	{
+		{1, 0}, // ###
+		{2, 0}, //   #
+		{2, 1},
+	},
+	{
+		{1, 0}, // ###
+		{2, 0}, //  #
+		{1, 1},
+	},
+	{
+		{0, 1}, // #
+		{1, 1}, // ##
+		{0, 2}, // #
+	},
+	{
+		{0, 1},  //  #
+		{-1, 1}, // ##
+		{0, 2},  //  #
+	},
+	{
+		{1, 1}, //  #
+		{0, 1}, // ###
+		{-1, 1},
+	},
+	// ALL FOURS
+	{
+		{1, 1}, // #
+		{0, 1}, // ##
+	},
+	{
+		{0, 1}, // ##
+		{0, 1}, // #
+	},
+	{
+		{1, 1}, // ##
+		{1, 0}, //  #
+	},
+	{
+		{1, 1},  //  #
+		{-1, 1}, // ##
+	},
+	// ALL THREES
+	{
+		{0, 1},
+	},
+	{
+		{1, 0},
+	},
+	// ALL TWOS
 }

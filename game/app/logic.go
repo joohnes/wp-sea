@@ -91,7 +91,11 @@ func (a *App) Shoot(coord string) error {
 		a.shotsCount += 1
 		a.shotsHit += 1
 		a.MarkBorders(x, y, &a.enemyStates, true)
-		a.algorithm.mode = TargetState
+		if a.algorithm.options.Density {
+			a.algorithm.mode = DensityState
+		} else {
+			a.algorithm.mode = TargetState
+		}
 		a.statistics[strings.ToLower(coord)] += 1
 	}
 	a.playerShots[coord] = result
