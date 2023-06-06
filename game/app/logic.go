@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/joohnes/wp-sea/game/logger"
 	"strings"
 	"time"
 
@@ -293,16 +292,5 @@ func (a *App) TranslateMap() (coords []string) {
 			}
 		}
 	}
-	logger.GetLoggerInstance().Info.Println(coords)
 	return
 }
-
-// CheckAllShots checks all player shots and opponent shots
-// to see if they are marked on the boards
-// if not, updates the board according to the shots
-//func (a *App) CheckAllShots() {
-//	baseboard := [10][10]gui.State{}
-//
-//	// check player board
-//
-//}
