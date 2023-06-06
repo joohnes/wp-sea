@@ -158,25 +158,30 @@ func (a *App) PrintAlgorithmOptions() error {
 		} else {
 			t.AppendRow(table.Row{1, fmt.Sprintf("%s: Auto play, ctrl + c to quit", red("Loop"))})
 		}
+		if a.algorithm.options.Map {
+			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Use built-in map", green("Map"))})
+		} else {
+			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Use built-in map", red("Map"))})
+		}
 		if a.algorithm.options.Stats {
-			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Uses statistics to shot", green("Stat"))})
+			t.AppendRow(table.Row{3, fmt.Sprintf("%s: Uses statistics to shot", green("Stat"))})
 			t.AppendRow(table.Row{"", "at the most common spot for ship to be in"})
 		} else {
-			t.AppendRow(table.Row{2, fmt.Sprintf("%s: Uses statistics to shot", red("Stat"))})
+			t.AppendRow(table.Row{3, fmt.Sprintf("%s: Uses statistics to shot", red("Stat"))})
 			t.AppendRow(table.Row{"", "at the most common spot for ship to be in"})
 		}
 		if a.algorithm.options.Density {
-			t.AppendRow(table.Row{3, fmt.Sprintf("%s: Uses density map to shot", green("Density"))})
+			t.AppendRow(table.Row{4, fmt.Sprintf("%s: Uses density map to shot", green("Density"))})
 			t.AppendRow(table.Row{"", "where there may be the most remaining ships"})
 		} else {
-			t.AppendRow(table.Row{3, fmt.Sprintf("%s: Uses density map to shot", red("Density"))})
+			t.AppendRow(table.Row{4, fmt.Sprintf("%s: Uses density map to shot", red("Density"))})
 			t.AppendRow(table.Row{"", "where there may be the most remaining ships"})
 		}
 		if a.algorithm.options.Mixed {
-			t.AppendRow(table.Row{4, fmt.Sprintf("%s: Mixes results of density", green("Mixed"))})
+			t.AppendRow(table.Row{5, fmt.Sprintf("%s: Mixes results of density", green("Mixed"))})
 			t.AppendRow(table.Row{"", "function with statistics"})
 		} else {
-			t.AppendRow(table.Row{4, fmt.Sprintf("%s: Mixes results of density", red("Mixed"))})
+			t.AppendRow(table.Row{5, fmt.Sprintf("%s: Mixes results of density", red("Mixed"))})
 			t.AppendRow(table.Row{"", "function with statistics"})
 		}
 		t.AppendFooter(table.Row{"", "Type 'b' to go back"})
@@ -189,20 +194,23 @@ func (a *App) PrintAlgorithmOptions() error {
 		switch strings.ToLower(answer) {
 		case "1":
 			a.algorithm.options.Loop = !a.algorithm.options.Loop
-			continue
 		case "2":
+			a.algorithm.options.Map = !a.algorithm.options.Map
+		case "3":
 			a.algorithm.options.Stats = !a.algorithm.options.Stats
 			a.algorithm.options.Density = false
 			a.algorithm.options.Mixed = false
-		case "3":
+		case "4":
 			a.algorithm.options.Stats = false
 			a.algorithm.options.Mixed = false
 			a.algorithm.options.Density = !a.algorithm.options.Density
-		case "4":
+		case "5":
 			a.algorithm.options.Stats = false
 			a.algorithm.options.Density = false
 			a.algorithm.options.Mixed = !a.algorithm.options.Mixed
 
+		case "q", "quit":
+			os.Exit(1)
 		case "b", "back":
 			return ErrBack
 		default:
@@ -399,6 +407,9 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 		case "q", "quit":
 			os.Exit(0)
 		case "1": // play with bot
+			if a.algorithm.options.Map && a.algorithm.enabled {
+				a.LoadMap()
+			}
 			err := helpers.ServerErrorWrapper(ShowErrors, func() error {
 				var err error
 				if a.CheckIfChangedMap() && a.Requirements() {
@@ -419,6 +430,9 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 			Break = true
 
 		case "2": // play with another player
+			if a.algorithm.options.Map && a.algorithm.enabled {
+				a.LoadMap()
+			}
 			err := a.ChoosePlayer()
 			if errors.Is(err, ErrBack) {
 				continue

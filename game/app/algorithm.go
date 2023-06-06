@@ -38,6 +38,7 @@ type Options struct {
 	Stats   bool
 	Density bool
 	Mixed   bool
+	Map     bool
 }
 
 /*
@@ -60,32 +61,24 @@ func NewAlgorithm() Algorithm {
 			false,
 			false,
 			false,
+			true,
 		},
 	}
 }
 
-func (a *App) ClosestShip(x, y int) int {
-	vec := []point{
-		{-1, 0},
-		{-1, -1},
-		{0, 1},
-		{1, 1},
-		{1, 0},
-		{-1, 1},
-		{0, -1},
-		{1, -1},
-	}
-
-	for i := 1; i <= 10; i++ {
-		for _, v := range vec {
-			dx := x + i*v.x
-			dy := y + i*v.y
-			if a.enemyStates[dx][dy] == gui.Hit {
-				return i
-			}
+func (a *App) LoadMap() {
+	basemap := []string{"a1", "a5", "a3", "a7", "a9", "b1", "b3", "b5", "b7", "b9", "c1", "c3", "c5", "d1", "i9", "j1", "j3", "j5", "j7", "j9"}
+	for _, b := range basemap {
+		x, y, err := helpers.NumericCords(b)
+		if err != nil {
+			logger.GetLoggerInstance().Error.Println("couldn't convert coord during LoadMap func")
+		} else {
+			a.playerStates[x][y] = gui.Ship
 		}
 	}
-	return 0
+	for x := range a.placeShips {
+		a.placeShips[x] = 0
+	}
 }
 
 func (a *App) getRandomCoord() (x, y int) {

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	gui "github.com/grupawp/warships-gui/v2"
 
 	"github.com/joohnes/wp-sea/game/helpers"
 )
@@ -14,7 +15,7 @@ var (
 func (a *App) CheckIfChangedMap() bool {
 	for _, x := range a.playerStates {
 		for _, y := range x {
-			if y == "Ship" {
+			if y == gui.Ship {
 				return true
 			}
 		}
@@ -78,9 +79,9 @@ func (a *App) ValidateShipPlacement(x, y int) error {
 		if err != nil {
 			return err
 		}
-		a.playerStates[x][y] = "Ship"
+		a.playerStates[x][y] = gui.Ship
 		a.CheckAllShipsLength()
-	} else if a.playerStates[x][y] == "Ship" {
+	} else if a.playerStates[x][y] == gui.Ship {
 		a.playerStates[x][y] = ""
 		points := a.CheckShipLength(x, y)
 		if len(points) > 2 {
@@ -106,7 +107,7 @@ func (a *App) CheckCorners(x, y int) error {
 		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
 			continue
 		}
-		if a.playerStates[dx][dy] == "Ship" {
+		if a.playerStates[dx][dy] == gui.Ship {
 			vec := []point{
 				{v.x, 0},
 				{0, v.y},
@@ -117,7 +118,7 @@ func (a *App) CheckCorners(x, y int) error {
 				if dx1 < 0 || dx1 >= 10 || dy1 < 0 || dy1 >= 10 {
 					continue
 				}
-				if a.playerStates[dx1][dy1] == "Ship" {
+				if a.playerStates[dx1][dy1] == gui.Ship {
 					return nil
 				}
 			}
@@ -155,7 +156,7 @@ func (a *App) countShips(x, y int, points *[]point) {
 		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
 			continue
 		}
-		if a.playerStates[dx][dy] == "Ship" {
+		if a.playerStates[dx][dy] == gui.Ship {
 			connections = append(connections, point{dx, dy})
 		}
 
@@ -179,7 +180,7 @@ func (a *App) CheckAllShipsLength() {
 	basemap := map[int]int{4: 1, 3: 2, 2: 3, 1: 4}
 	for i := range a.playerStates {
 		for j, state := range a.playerStates[i] {
-			if state == "Ship" {
+			if state == gui.Ship {
 				if IsIn(checked, i, j) {
 					continue
 				}
@@ -300,7 +301,7 @@ func (a *App) CheckForLoners(x, y int) {
 		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 {
 			continue
 		}
-		if a.playerStates[dx][dy] == "Ship" {
+		if a.playerStates[dx][dy] == gui.Ship {
 			points := a.CheckShipLength(dx, dy)
 			if len(points) == 1 {
 				a.playerStates[dx][dy] = ""
@@ -315,7 +316,7 @@ func (a *App) CheckForLoners(x, y int) {
 func (a *App) CheckLeftShips(points []point) {
 	var counter int
 	for _, v := range points {
-		if a.playerStates[v.x][v.y] == "Ship" {
+		if a.playerStates[v.x][v.y] == gui.Ship {
 			counter++
 		}
 	}
