@@ -107,7 +107,7 @@ func (a *App) WaitingRefresh() {
 	}
 }
 
-func PrintOptions(nick string, changed, algorithm bool) {
+func PrintOptions(nick string, changed, algorithm, assistance bool) {
 	t := table.NewWriter()
 	t.SetTitle(fmt.Sprintf("Nick: %s", nick))
 	t.AppendHeader(table.Row{"#", "Choose an option"})
@@ -130,8 +130,15 @@ func PrintOptions(nick string, changed, algorithm bool) {
 		red := color.New(color.FgRed).SprintFunc()
 		t.AppendRow(table.Row{8, red("Turn off Algorithm")})
 	}
-	t.AppendRow(table.Row{9, "Show algorithm options"})
-	t.AppendRow(table.Row{10, "Show heatmap"})
+	if !assistance {
+		green := color.New(color.FgGreen).SprintFunc()
+		t.AppendRow(table.Row{9, green("Turn on Algorithm assistance ")})
+	} else {
+		red := color.New(color.FgRed).SprintFunc()
+		t.AppendRow(table.Row{9, red("Turn off Algorithm assistance")})
+	}
+	t.AppendRow(table.Row{10, "Show algorithm options"})
+	t.AppendRow(table.Row{11, "Show heatmap"})
 	t.AppendFooter(table.Row{"", "Type 'q' to exit"})
 	fmt.Println(t.Render())
 	fmt.Print("Option: ")
@@ -367,7 +374,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 		}
 		screen.Clear()
 		screen.MoveTopLeft()
-		PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled)
+		PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled, a.algorithm.assistance)
 		answer, err := helpers.GetAnswer(false)
 		if err != nil {
 			log.Error.Println(err)
@@ -448,8 +455,13 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 
 		case "8": // turn on/off algorithm
 			a.algorithm.enabled = !a.algorithm.enabled
+			a.algorithm.assistance = false
 
-		case "9": // algorithm options
+		case "9": // turn on/off algorithm aid
+			a.algorithm.assistance = !a.algorithm.assistance
+			a.algorithm.enabled = false
+
+		case "10": // algorithm options
 			err = a.PrintAlgorithmOptions()
 			if errors.Is(err, ErrBack) {
 				continue
@@ -457,7 +469,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 			if err != nil {
 				logger.GetLoggerInstance().Error.Println(err)
 			}
-		case "10": // Show heatmap with shot statistics
+		case "11": // Show heatmap with shot statistics
 			a.ShowStatistics()
 		default:
 			fmt.Println("Please enter a valid number!")

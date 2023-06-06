@@ -82,6 +82,7 @@ func (a *App) Run() error {
 	// SETUP CHANNELS
 	coordchan := make(chan string)
 	textchan := make(chan string)
+	predchan := make(chan string)
 	errorchan := make(chan error)
 	timeLeftchan := make(chan int)
 	resetTimerchan := make(chan int)
@@ -182,7 +183,7 @@ func (a *App) Run() error {
 		go a.CheckStatus(playingCtx, playingCancel, textchan)
 		go a.OpponentShots(playingCtx, errorchan)
 		if !a.algorithm.enabled {
-			go a.Play(playingCtx, coordchan, textchan, errorchan, resetTimerchan)
+			go a.Play(playingCtx, coordchan, textchan, predchan, errorchan, resetTimerchan)
 		} else {
 			go a.AlgorithmPlay(playingCtx, textchan, errorchan, resetTimerchan)
 		}
@@ -190,7 +191,7 @@ func (a *App) Run() error {
 		//
 
 		// SHOW BOARD
-		a.ShowBoard(playingCtx, coordchan, textchan, errorchan, timeLeftchan)
+		a.ShowBoard(playingCtx, coordchan, textchan, predchan, errorchan, timeLeftchan)
 		if a.gameState != StateEnded {
 			for {
 				if a.gameState == StateEnded {

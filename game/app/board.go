@@ -19,7 +19,7 @@ var (
 	Right = 50
 )
 
-func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <-chan string, errorchan <-chan error, timeLeftchan <-chan int) {
+func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan, predchan <-chan string, errorchan <-chan error, timeLeftchan <-chan int) {
 	// SETUP
 	ui := gui.NewGUI(false)
 	txt := gui.NewText(Left, 1, "Press Ctrl+C to exit", nil)
@@ -35,6 +35,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 
 	turnText := gui.NewText(Right, 4, "", nil)
 	chanText := gui.NewText(Left, 36, "", nil)
+	predText := gui.NewText(Right, 36, "", nil)
 	errorText := gui.NewText(Left, 37, "", &errCfg)
 
 	shotsCounttxt := gui.NewText(Right, 1, "Shots: 0", nil)
@@ -86,6 +87,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 		timer,
 		turnText,
 		chanText,
+		predText,
 		errorText,
 		playerNick,
 		playerDesc,
@@ -133,14 +135,22 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan <
 			case <-ctx.Done():
 				return
 			case text := <-textchan:
-				chanText.SetText(text)
 				if text == "You have won the game!" {
 					chanText.SetBgColor(gui.Green)
+					chanText.SetText(text)
 				} else if text == "You have lost the game!" {
 					chanText.SetBgColor(gui.Red)
+					chanText.SetText(text)
 				} else if text == "color reset" {
 					chanText.SetBgColor(gui.White)
+					chanText.SetText("")
+					predText.SetText("")
+				} else {
+					chanText.SetText(text)
 				}
+
+			case pred := <-predchan:
+				predText.SetText(fmt.Sprintf("Algorithm suggests: %s", pred))
 
 			case err := <-errorchan:
 				errorText.SetText(err.Error())

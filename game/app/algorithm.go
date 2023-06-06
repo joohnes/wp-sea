@@ -22,6 +22,7 @@ const (
 
 type Algorithm struct {
 	enabled       bool
+	assistance    bool
 	mode          Mode
 	tried         []string
 	shot          []string
@@ -44,6 +45,7 @@ type Options struct {
 
 func NewAlgorithm() Algorithm {
 	return Algorithm{
+		false,
 		false,
 		TargetState,
 		[]string{},
@@ -194,7 +196,7 @@ func (a *App) getShips(x, y int, points *[]point) {
 }
 
 func (a *App) getTargetCoords() (x, y int) {
-	if a.algorithm.options.Stats {
+	if a.algorithm.options.Stats || len(a.algorithm.shot) < 10 {
 		for _, v := range a.algorithm.statList {
 			x, y, err := helpers.NumericCords(v.Key)
 			if err != nil {

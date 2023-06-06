@@ -102,8 +102,11 @@ func (a *App) Shoot(coord string) error {
 	return nil
 }
 
-func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<- string, errorchan chan error, resetTime chan int) {
+func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan, predchan chan<- string, errorchan chan error, resetTime chan int) {
 	var coord string
+	if a.algorithm.assistance {
+		a.algorithm.statList = a.getSortedStatistics()
+	}
 	for {
 		select {
 		case coord = <-coordchan:
@@ -119,10 +122,13 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan chan<-
 				err = a.Shoot(coord)
 				if err != nil {
 					errorchan <- err
+				} else {
+					if a.algorithm.assistance {
+						predchan <- helpers.AlphabeticCoords(a.SearchShip())
+					}
+					resetTime <- 1
+					textchan <- fmt.Sprintf("Shot at %s", coord)
 				}
-
-				resetTime <- 1
-				textchan <- fmt.Sprintf("Shot at %s", coord)
 			}
 		case <-ctx.Done():
 			return
