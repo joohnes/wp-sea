@@ -172,6 +172,13 @@ func (a *App) PrintAlgorithmOptions() error {
 			t.AppendRow(table.Row{3, fmt.Sprintf("%s: Uses density map to shot", red("Density"))})
 			t.AppendRow(table.Row{"", "where there may be the most remaining ships"})
 		}
+		if a.algorithm.options.Mixed {
+			t.AppendRow(table.Row{4, fmt.Sprintf("%s: Mixes results of density", green("Mixed"))})
+			t.AppendRow(table.Row{"", "function with statistics"})
+		} else {
+			t.AppendRow(table.Row{4, fmt.Sprintf("%s: Mixes results of density", red("Mixed"))})
+			t.AppendRow(table.Row{"", "function with statistics"})
+		}
 		t.AppendFooter(table.Row{"", "Type 'b' to go back"})
 		fmt.Println(t.Render())
 		fmt.Print("Option: ")
@@ -186,9 +193,16 @@ func (a *App) PrintAlgorithmOptions() error {
 		case "2":
 			a.algorithm.options.Stats = !a.algorithm.options.Stats
 			a.algorithm.options.Density = false
+			a.algorithm.options.Mixed = false
 		case "3":
 			a.algorithm.options.Stats = false
+			a.algorithm.options.Mixed = false
 			a.algorithm.options.Density = !a.algorithm.options.Density
+		case "4":
+			a.algorithm.options.Stats = false
+			a.algorithm.options.Density = false
+			a.algorithm.options.Mixed = !a.algorithm.options.Mixed
+
 		case "b", "back":
 			return ErrBack
 		default:

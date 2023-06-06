@@ -93,6 +93,8 @@ func (a *App) Shoot(coord string) error {
 		a.MarkBorders(x, y, &a.enemyStates, true)
 		if a.algorithm.options.Density {
 			a.algorithm.mode = DensityState
+		} else if a.algorithm.options.Mixed {
+			a.algorithm.mode = MixedState
 		} else {
 			a.algorithm.mode = TargetState
 		}

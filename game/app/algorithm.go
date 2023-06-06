@@ -18,6 +18,7 @@ const (
 	HuntState    Mode = "HUNT"
 	TargetState  Mode = "TARGET"
 	DensityState Mode = "DENSITY"
+	MixedState   Mode = "MIXED"
 )
 
 type Algorithm struct {
@@ -36,6 +37,7 @@ type Options struct {
 	Loop    bool
 	Stats   bool
 	Density bool
+	Mixed   bool
 }
 
 /*
@@ -54,6 +56,7 @@ func NewAlgorithm() Algorithm {
 		[10][10]int{},
 		"",
 		Options{
+			false,
 			false,
 			false,
 			false,
@@ -90,17 +93,15 @@ func (a *App) getRandomCoord() (x, y int) {
 		x = rand.Intn(10)
 		y = rand.Intn(10)
 		if a.enemyStates[x][y] != gui.Hit && a.enemyStates[x][y] != gui.Miss && !In(a.algorithm.shot, helpers.AlphabeticCoords(x, y)) {
-			break
+			return
 		}
-		return
 	}
-	return x, y
 }
 
 func (a *App) SearchShip() (x, y int) {
 	if a.algorithm.mode == TargetState {
 		return a.getTargetCoords()
-	} else if a.algorithm.mode == DensityState {
+	} else if a.algorithm.mode == DensityState || a.algorithm.mode == MixedState {
 		return a.getDensityCoords()
 	} else if a.algorithm.mode == HuntState {
 		return a.getHuntCoords()
@@ -268,7 +269,16 @@ func (a *App) getDensityCoords() (x, y int) {
 	var maxX, maxY, number int
 	for i := range densityMap {
 		for j := range densityMap[i] {
-			if c := densityMap[i][j]; c > number {
+			var c int
+			if a.enemyStates[i][j] == gui.Hit || a.enemyStates[i][j] == gui.Miss || In(a.algorithm.shot, helpers.AlphabeticCoords(i, j)) {
+				continue
+			}
+			if a.algorithm.options.Mixed {
+				c = densityMap[i][j] * a.statistics[helpers.AlphabeticCoords(i, j)]
+			} else {
+				c = densityMap[i][j]
+			}
+			if c > number {
 				number = c
 				maxX = i
 				maxY = j
