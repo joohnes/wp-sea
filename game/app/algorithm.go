@@ -60,7 +60,7 @@ func NewAlgorithm() Algorithm {
 			false,
 			false,
 			false,
-			false,
+			true,
 			true,
 		},
 	}
@@ -151,6 +151,7 @@ func (a *App) HasAlreadyBeenShot(coord string) bool {
 	return false
 }
 
+// CheckShipPoints returns all known points of a ship
 func (a *App) CheckShipPoints(x, y int) []point {
 	var points []point
 	a.getShips(x, y, &points)
@@ -189,6 +190,8 @@ func (a *App) getShips(x, y int, points *[]point) {
 	}
 }
 
+// getTargetCoords returns random coords which are not Hit or Miss
+// or most common placement of ships according to statistics
 func (a *App) getTargetCoords() (x, y int) {
 	if a.algorithm.options.Stats || len(a.algorithm.shot) < 10 {
 		for _, v := range a.algorithm.statList {
@@ -206,6 +209,8 @@ func (a *App) getTargetCoords() (x, y int) {
 	return a.getRandomCoord()
 }
 
+// getHuntCoords returns the coordinates to tiles around the given coord
+// until the ship is sunk
 func (a *App) getHuntCoords() (x, y int) {
 	coordX, coordY, err := helpers.NumericCords(a.LastPlayerHit)
 	if err != nil {
@@ -238,7 +243,15 @@ func (a *App) getHuntCoords() (x, y int) {
 	return a.getRandomCoord()
 }
 
+// getDensityCoords checks every free space and tries to fit all of the shapes listed below
+// If shape fits, adds 1 to every tile that was part of that shape(?)
+// returns coords to a tile with highest number
 func (a *App) getDensityCoords() (x, y int) {
+	// In scenario where only len 1 ships are left there is no need
+	// to use any algorithm, just return random coord
+	if a.enemyShips[4] == 0 && a.enemyShips[3] == 0 && a.enemyShips[2] == 0 {
+		return a.getRandomCoord()
+	}
 	densityMap := [10][10]int{}
 	for i := range a.enemyStates {
 		for j, v := range a.enemyStates[i] {
@@ -291,7 +304,7 @@ func (a *App) DoesShapeFit(x, y int, shape []point) bool {
 		if dx < 0 || dx >= 10 || dy < 0 || dy >= 10 || a.enemyStates[dx][dy] == gui.Hit || a.enemyStates[dx][dy] == gui.Miss {
 			return false
 		}
-		//if a.enemyStates[dx][dy] != gui.Empty {
+		//if a.enemyStates[dx][dy] != gui.Empty {    // This isn't working for some reason
 		//	return false
 		//}
 	}
