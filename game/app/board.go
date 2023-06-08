@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	gui "github.com/grupawp/warships-gui/v2"
@@ -28,6 +29,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan, 
 
 	//TEXTS
 	timer := gui.NewText(Left, 2, "Timer: ", nil)
+	turnInfo := gui.NewText(Left, 4, "Turn: 1", nil)
 	playerNick := gui.NewText(Left, 30, fmt.Sprintf("Player: %s", a.nick), &playerCfg)
 	playerDesc := gui.NewText(Left, 31, fmt.Sprintf("Player's desc: %s", a.desc), &playerCfg)
 	oppNick := gui.NewText(Left, 33, fmt.Sprintf("Opp: %s", a.oppNick), &oppCfg)
@@ -85,6 +87,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan, 
 		myBoard,
 		enemyBoard,
 		timer,
+		turnInfo,
 		turnText,
 		chanText,
 		predText,
@@ -193,6 +196,7 @@ func (a *App) ShowBoard(ctx context.Context, coordchan chan<- string, textchan, 
 				return
 			default:
 				time.Sleep(50 * time.Millisecond)
+				turnInfo.SetText("Turn: " + strconv.Itoa(a.turn))
 				myBoard.SetStates(a.myStates)
 				enemyBoard.SetStates(a.enemyStates)
 				shotsCounttxt.SetText(fmt.Sprintf("Shots: %d", a.shotsCount))

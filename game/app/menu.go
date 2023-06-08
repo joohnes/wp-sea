@@ -107,9 +107,12 @@ func (a *App) WaitingRefresh() {
 	}
 }
 
-func PrintOptions(nick string, changed, algorithm, assistance bool) {
+func PrintOptions(nick string, changed, algorithm, assistance bool, games, won int) {
+	red := color.New(color.FgRed).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
 	t := table.NewWriter()
 	t.SetTitle(fmt.Sprintf("Nick: %s", nick))
+	t.AppendHeader(table.Row{"", fmt.Sprintf("Algorithm Games: %s Won: %s", green(games), green(won))})
 	t.AppendHeader(table.Row{"#", "Choose an option"})
 	t.AppendRow(table.Row{1, "Play with WPBot"})
 	t.AppendRow(table.Row{2, "Play with another player"})
@@ -117,24 +120,19 @@ func PrintOptions(nick string, changed, algorithm, assistance bool) {
 	t.AppendRow(table.Row{4, "Your stats"})
 	t.AppendRow(table.Row{5, "Check someone's stats"})
 	if changed {
-		green := color.New(color.FgGreen).SprintFunc()
 		t.AppendRow(table.Row{6, fmt.Sprintf("Set up your ships %s", green("(SET)"))})
 	} else {
 		t.AppendRow(table.Row{6, "Set up your ships"})
 	}
 	t.AppendRow(table.Row{7, "Reset ship placement"})
 	if !algorithm {
-		green := color.New(color.FgGreen).SprintFunc()
 		t.AppendRow(table.Row{8, green("Turn on Algorithm")})
 	} else {
-		red := color.New(color.FgRed).SprintFunc()
 		t.AppendRow(table.Row{8, red("Turn off Algorithm")})
 	}
 	if !assistance {
-		green := color.New(color.FgGreen).SprintFunc()
 		t.AppendRow(table.Row{9, green("Turn on Algorithm assistance ")})
 	} else {
-		red := color.New(color.FgRed).SprintFunc()
 		t.AppendRow(table.Row{9, red("Turn off Algorithm assistance")})
 	}
 	t.AppendRow(table.Row{10, "Show algorithm options"})
@@ -396,7 +394,7 @@ func (a *App) ChooseOption(ctx context.Context, shipchannel chan string, errChan
 		}
 		screen.Clear()
 		screen.MoveTopLeft()
-		PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled, a.algorithm.assistance)
+		PrintOptions(a.nick, a.Requirements(), a.algorithm.enabled, a.algorithm.assistance, a.games, a.won)
 		answer, err := helpers.GetAnswer(false)
 		if err != nil {
 			log.Error.Println(err)

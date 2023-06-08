@@ -31,6 +31,19 @@ func (a *App) LoadStatistics() error {
 		}
 	}(f)
 	r := csv.NewReader(f)
+	read, err := r.Read()
+	if err != nil {
+		return err
+	}
+	a.games, err = strconv.Atoi(read[0])
+	if err != nil {
+		return err
+	}
+	a.won, err = strconv.Atoi(read[1])
+	if err != nil {
+		return err
+	}
+
 	records, err := r.ReadAll()
 	if err != nil {
 		logger.GetLoggerInstance().Error.Println("couldn't read statistics")
@@ -63,6 +76,11 @@ func (a *App) SaveStatistics() {
 	}(f)
 	w := csv.NewWriter(f)
 	defer w.Flush()
+	err = w.Write([]string{strconv.Itoa(a.games), strconv.Itoa(a.won)})
+	if err != nil {
+		logger.GetLoggerInstance().Error.Println("couldn't write")
+		return
+	}
 	for coord, occurrences := range a.statistics {
 		err := w.Write([]string{coord, strconv.Itoa(occurrences)})
 		if err != nil {

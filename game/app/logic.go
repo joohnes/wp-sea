@@ -8,8 +8,6 @@ import (
 
 	gui "github.com/grupawp/warships-gui/v2"
 	"github.com/joohnes/wp-sea/game/helpers"
-
-	"github.com/fatih/color"
 )
 
 const (
@@ -28,40 +26,6 @@ func (a *App) WaitForStart() error {
 		}
 		time.Sleep(waitDuration * time.Second)
 	}
-}
-
-func (a *App) WaitForTurn() error {
-	for {
-		status, err := a.client.Status()
-		if err != nil {
-			return err
-		}
-		if status.ShouldFire {
-			break
-		}
-		time.Sleep(waitDuration * time.Second)
-	}
-	return nil
-}
-
-func (a *App) CheckIfWon() bool {
-	status, err := a.client.Status()
-	if err != nil {
-		fmt.Println("Could not get status")
-	}
-	switch status.LastGameStatus {
-	case "win":
-		green := color.New(color.FgBlack, color.BgGreen).SprintFunc()
-		fmt.Println(green("You have won the game!"))
-		a.gameState = StateEnded
-		return true
-	case "lose":
-		red := color.New(color.FgBlack, color.BgRed).SprintFunc()
-		fmt.Println(red("You have lost the game!"))
-		a.gameState = StateEnded
-		return true
-	}
-	return false
 }
 
 func (a *App) Shoot(coord string) error {
@@ -168,15 +132,22 @@ func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textch
 			switch status.ShouldFire {
 			case true:
 				a.gameState = StatePlayerTurn
+				a.turn++
 			case false:
 				a.gameState = StateOppTurn
 			}
 			a.actualStatus = *status
 			if status.GameStatus == "ended" {
 				a.gameState = StateEnded
+				if a.algorithm.enabled {
+					a.games++
+				}
 				switch status.LastGameStatus {
 				case "win":
 					textchan <- "You have won the game!"
+					if a.algorithm.enabled {
+						a.won++
+					}
 				case "lose":
 					textchan <- "You have lost the game!"
 				}
