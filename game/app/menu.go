@@ -48,11 +48,9 @@ func (a *App) ShowStats() error {
 	t.SetTitle("Stats")
 	t.SortBy([]table.SortBy{{Name: "Rank", Mode: table.AscNumeric}})
 
-	t.AppendHeader(table.Row{"#", "Nick", "Games", "Points", "Rank", "Wins"})
-	counter := 1
+	t.AppendHeader(table.Row{"Rank", "Nick", "Games", "Points", "Wins"})
 	for i, x := range data {
-		t.AppendRow(table.Row{counter, i, x[0], x[1], x[2], x[3]})
-		counter++
+		t.AppendRow(table.Row{x[2], i, x[0], x[1], x[3]})
 	}
 	fmt.Println(t.Render())
 	fmt.Println("Press enter to go back to the menu")
