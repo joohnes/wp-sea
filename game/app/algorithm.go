@@ -67,7 +67,7 @@ func NewAlgorithm() Algorithm {
 }
 
 func (a *App) LoadMap() {
-	basemap := []string{"a1", "a5", "a3", "a7", "a9", "b1", "b3", "b5", "b7", "b9", "c1", "c3", "c5", "d1", "i9", "j1", "j3", "j5", "j7", "j9"}
+	basemap := []string{"a5", "b2", "b7", "b8", "b10", "c2", "c8", "e1", "e2", "e10", "h2", "h6", "h8", "i1", "i2", "i6", "i8", "i9", "j1", "j4"}
 	for _, b := range basemap {
 		x, y, err := helpers.NumericCords(b)
 		if err != nil {
@@ -121,6 +121,7 @@ func (a *App) AlgorithmPlay(ctx context.Context, textchan chan<- string, errorch
 			return
 		case <-t.C:
 			if a.gameState == StatePlayerTurn {
+				a.turn++
 				x, y := a.SearchShip()
 				var coord string
 				coord = helpers.AlphabeticCoords(x, y)

@@ -77,6 +77,7 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan, predc
 		select {
 		case coord = <-coordchan:
 			if a.gameState == StatePlayerTurn {
+				a.turn++
 				_, _, err := helpers.NumericCords(coord)
 				if err != nil {
 					errorchan <- err
@@ -132,7 +133,6 @@ func (a *App) CheckStatus(ctx context.Context, cancel context.CancelFunc, textch
 			switch status.ShouldFire {
 			case true:
 				a.gameState = StatePlayerTurn
-				a.turn++
 			case false:
 				a.gameState = StateOppTurn
 			}
@@ -251,6 +251,7 @@ func (a *App) Reset() {
 	a.algorithm.shot = []string{}
 	a.algorithm.tried = []string{}
 	a.algorithm.statList = PairList{}
+	a.turn = 0
 	a.client.ResetToken()
 }
 
