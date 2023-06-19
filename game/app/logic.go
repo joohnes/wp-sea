@@ -43,6 +43,7 @@ func (a *App) Shoot(coord string) error {
 		a.enemyStates[x][y] = "Miss"
 		a.shotsCount += 1
 		a.gameState = StateOppTurn
+		a.turn++
 	case "hit":
 		a.enemyStates[x][y] = "Hit"
 		a.shotsCount += 1
@@ -77,7 +78,6 @@ func (a *App) Play(ctx context.Context, coordchan <-chan string, textchan, predc
 		select {
 		case coord = <-coordchan:
 			if a.gameState == StatePlayerTurn {
-				a.turn++
 				_, _, err := helpers.NumericCords(coord)
 				if err != nil {
 					errorchan <- err
@@ -251,7 +251,7 @@ func (a *App) Reset() {
 	a.algorithm.shot = []string{}
 	a.algorithm.tried = []string{}
 	a.algorithm.statList = PairList{}
-	a.turn = 0
+	a.turn = 1
 	a.client.ResetToken()
 }
 

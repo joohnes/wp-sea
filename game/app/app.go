@@ -72,7 +72,7 @@ func New(c client) *App {
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[int]int{4: 1, 3: 2, 2: 3, 1: 4},
 		map[string]string{},
-		0,
+		1,
 		0,
 		0,
 		make(map[string]int),
